@@ -2,9 +2,9 @@ import { createContext, useState } from 'react';
 
 export const AppContext = createContext();
 
-export const AppProvider = ({ children }) => {
-  const [userRole, setUserRole] = useState(null); // 'rider' or 'driver'
-  const [rideStatus, setRideStatus] = useState('idle'); // 'idle', 'requested', 'in_progress', 'completed'
+const AppProvider = ({ children }) => {
+  const [userRole, setUserRole] = useState(null);
+  const [rideStatus, setRideStatus] = useState('idle');
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
 
@@ -25,3 +25,7 @@ export const AppProvider = ({ children }) => {
     </AppContext.Provider>
   );
 };
+
+export default AppProvider;
+
+

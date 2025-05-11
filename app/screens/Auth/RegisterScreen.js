@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { useState } from 'react';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 const RegisterScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
@@ -23,18 +23,27 @@ const RegisterScreen = ({ navigation }) => {
         secureTextEntry
       />
       <Button title="Register" onPress={handleRegister} />
-      <Text onPress={() => navigation.navigate('Login')} style={styles.link}>
-        Already have an account? Login
-      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  header: { fontSize: 28, marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, marginBottom: 12, padding: 10, borderRadius: 6 },
-  link: { marginTop: 15, textAlign: 'center', color: 'blue' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  input: {
+    width: '80%',
+    padding: 10,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderRadius: 5,
+  },
 });
 
 export default RegisterScreen;

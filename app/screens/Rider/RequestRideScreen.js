@@ -1,5 +1,5 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { useContext, useState } from 'react';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AppContext } from '../../context/AppContext';
 
 const RequestRideScreen = ({ navigation }) => {
@@ -22,19 +22,41 @@ const RequestRideScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Pickup Location</Text>
-      <TextInput style={styles.input} value={pickup} onChangeText={setPickup} />
-      <Text style={styles.label}>Drop-off Location</Text>
-      <TextInput style={styles.input} value={dropoff} onChangeText={setDropoff} />
+      <Text style={styles.header}>Request a Ride</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Pickup Location"
+        value={pickup}
+        onChangeText={setPickup}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Dropoff Location"
+        value={dropoff}
+        onChangeText={setDropoff}
+      />
       <Button title="Request Ride" onPress={requestRide} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  label: { fontWeight: 'bold', marginTop: 15 },
-  input: { borderWidth: 1, padding: 10, borderRadius: 6, marginTop: 5 },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    fontSize: 24,
+    marginBottom: 20,
+  },
+  input: {
+    width: '80%',
+    padding: 10,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderRadius: 5,
+  },
 });
 
 export default RequestRideScreen;

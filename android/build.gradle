@@ -21,16 +21,10 @@ def reactNativeAndroidDir = new File(
 )
 
 allprojects {
-  repositories {
-    maven {
-      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
-      url(reactNativeAndroidDir)
+    repositories {
+        google()
+        mavenCentral()
     }
-
-    google()
-    mavenCentral()
-    maven { url 'https://www.jitpack.io' }
-  }
 }
 
 apply plugin: "expo-root-project"

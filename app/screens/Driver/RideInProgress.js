@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Button, StyleSheet, Text, View } from 'react-native';
+import { Button, StyleSheet, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { AppContext } from '../../context/AppContext';
 
@@ -19,58 +19,40 @@ const RideInProgress = ({ navigation }) => {
     ...dropoffLocation, // if you use real drop-off data from context
   };
 
-  // Helper: calculate next position
-  const moveDriverTowardDestination = () => {
-    const deltaLat = (destination.latitude - driverPosition.latitude) * 0.01;
-    const deltaLng = (destination.longitude - driverPosition.longitude) * 0.01;
-
-    setDriverPosition((prev) => ({
-      latitude: prev.latitude + deltaLat,
-      longitude: prev.longitude + deltaLng,
-    }));
-
-    // Stop if very close to destination
-    const distance = Math.hypot(
-      destination.latitude - driverPosition.latitude,
-      destination.longitude - driverPosition.longitude
-    );
-    if (distance < 0.0002) {
-      clearInterval(intervalRef.current);
-      setRideStatus('completed');
-    }
-  };
-
   useEffect(() => {
-    intervalRef.current = setInterval(moveDriverTowardDestination, 500);
+    intervalRef.current = setInterval(() => {
+      setDriverPosition((prev) => ({
+        latitude: prev.latitude + 0.0001,
+        longitude: prev.longitude + 0.0001,
+      }));
+    }, 1000);
+
     return () => clearInterval(intervalRef.current);
   }, []);
 
+  const completeRide = () => {
+    setRideStatus('completed');
+    navigation.navigate('DriverMap');
+  };
+
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={{
-          ...driverPosition,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.0121,
-        }}
-      >
-        <Marker coordinate={driverPosition} title="Driver" pinColor="green" />
-        <Marker coordinate={destination} title="Drop-off" pinColor="blue" />
+      <MapView style={styles.map} initialRegion={driverPosition}>
+        <Marker coordinate={driverPosition} />
+        <Marker coordinate={destination} />
       </MapView>
-      <View style={styles.footer}>
-        <Text style={styles.status}>Ride Status: {rideStatus}</Text>
-        <Button title="End Ride" onPress={() => navigation.navigate('Home')} />
-      </View>
+      <Button title="Complete Ride" onPress={completeRide} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  map: { flex: 1 },
-  footer: { padding: 20, backgroundColor: '#fff' },
-  status: { fontSize: 18, marginBottom: 10 },
+  container: {
+    flex: 1,
+  },
+  map: {
+    flex: 1,
+  },
 });
 
 export default RideInProgress;
