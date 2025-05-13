@@ -1,33 +1,111 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Button,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useColorScheme
+} from 'react-native';
+import FormToggle from 'E:/Wasselni2.0/components/FormToggle';
 
-
-function LoginScreen({ navigation }) {
+function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const isDarkMode = useColorScheme() === 'dark';
+  const router = useRouter();
 
-  console.log('Navigation prop:', navigation);
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password.');
+      return;
+    }
 
-  const handleLogin = () => {
-    // Replace with real auth logic
-    if (email && password) {
-      navigation.navigate('RiderMap'); 
+    try {
+      const response = await fetch('http://YOUR_BACKEND_URL/services/login.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        if (data.user.type === 'Driver') {
+          router.push('/DriverMap');
+        } else {
+          router.push('/RiderMap');
+        }
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Something went wrong. Please try again later.');
     }
   };
+
+  // Dynamic theme styles
+  const themeStyles = {
+    backgroundColor: isDarkMode ? '#121212' : '#f2f2f2',
+    inputBackground: isDarkMode ? '#333' : '#f9f9f9',
+    textColor: isDarkMode ? '#fff' : '#000',
+    borderColor: isDarkMode ? '#555' : '#ccc',
+    buttonColor: isDarkMode ? '#1e90ff' : '#007AFF',
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Login</Text>
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry />
-      <Button title="Login" onPress={handleLogin} />
-      <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
-        <Text style={styles.link}>Go to Register</Text>
-      </TouchableOpacity>
+    <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
+      <FormToggle activeScreen="login" />
+      <ScrollView
+        contentContainerStyle={[
+          styles.formContainer,
+          {
+            backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
+            borderColor: themeStyles.borderColor,
+          },
+        ]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={[styles.header, { color: themeStyles.textColor }]}>Login</Text>
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: themeStyles.inputBackground,
+              color: themeStyles.textColor,
+              borderColor: themeStyles.borderColor,
+            },
+          ]}
+          placeholder="Email"
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextInput
+          style={[
+            styles.input,
+            {
+              backgroundColor: themeStyles.inputBackground,
+              color: themeStyles.textColor,
+              borderColor: themeStyles.borderColor,
+            },
+          ]}
+          placeholder="Password"
+          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <View style={styles.buttonContainer}>
+          <Button title="Login" onPress={handleLogin} color={themeStyles.buttonColor} />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -35,22 +113,27 @@ function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  formContainer: {
+    margin: 20,
+    padding: 20,
+    borderRadius: 10,
+    borderWidth: 1,
   },
   header: {
-    fontSize: 24,
+    fontSize: 28,
+    fontWeight: 'bold',
     marginBottom: 20,
+    alignSelf: 'center',
   },
   input: {
-    width: '80%',
-    padding: 10,
-    marginVertical: 10,
+    height: 50,
+    paddingHorizontal: 15,
+    borderRadius: 8,
     borderWidth: 1,
-    borderRadius: 5,
+    marginBottom: 15,
   },
-  link: {
-    color: 'blue',
+  buttonContainer: {
     marginTop: 20,
   },
 });

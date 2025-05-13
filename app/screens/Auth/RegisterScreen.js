@@ -11,6 +11,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
+import FormToggle from 'E:/Wasselni2.0/components/FormToggle';
 
 const RegisterScreen = () => {
   const router = useRouter();
@@ -56,6 +57,8 @@ const RegisterScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
+      <FormToggle activeScreen="register" />  {/* Remove navigation prop here */}
+
       <Text style={[styles.header, { color: themeStyles.textColor }]}>Register</Text>
       <Text style={{ color: themeStyles.textColor }}>Select Registration Type:</Text>
 
@@ -70,7 +73,6 @@ const RegisterScreen = () => {
           <Picker.Item label="Driver" value="Driver" />
         </Picker>
       </View>
-
 
       <View style={[styles.formWrapper, { backgroundColor: themeStyles.formContainerColor }]}>
         <ScrollView
@@ -160,7 +162,6 @@ const RegisterScreen = () => {
               />
 
               <Text style={{ color: themeStyles.textColor }}>Vehicle Type</Text>
-              <Text style={{ color: themeStyles.textColor, marginTop: 10 }}>Vehicle Type</Text>
               <View style={[styles.pickerWrapper, { backgroundColor: themeStyles.inputBackground, borderColor: themeStyles.textColor }]}>
                 <Picker
                   selectedValue={vehicleType}
@@ -188,12 +189,11 @@ const RegisterScreen = () => {
 
 const styles = StyleSheet.create({
   pickerWrapper: {
-  width: '100%',
-  borderWidth: 1,
-  borderRadius: 8,
-  marginVertical: 10,
-},
-
+    width: '100%',
+    borderWidth: 1,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
   container: {
     flex: 1,
     justifyContent: 'flex-start',
