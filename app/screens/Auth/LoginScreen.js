@@ -11,7 +11,7 @@ function LoginScreen({ navigation }) {
   const handleLogin = () => {
     // Replace with real auth logic
     if (email && password) {
-      navigation.navigate('Home'); // Matches the "Home" route in AppNavigator
+      navigation.navigate('RiderMap'); 
     }
   };
   return (
@@ -25,7 +25,7 @@ function LoginScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry />
       <Button title="Login" onPress={handleLogin} />
-      <TouchableOpacity onPress={() => navigation.navigate('Register')}>
+      <TouchableOpacity onPress={() => navigation.navigate('RegisterScreen')}>
         <Text style={styles.link}>Go to Register</Text>
       </TouchableOpacity>
     </View>
