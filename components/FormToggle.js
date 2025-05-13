@@ -1,21 +1,22 @@
+// components/FormToggle.js
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter } from 'expo-router'; // Import useRouter
 
 const FormToggle = ({ activeScreen }) => {
   const isDarkMode = useColorScheme() === 'dark';
-  const router = useRouter(); // Use the useRouter hook for navigation
+  const router = useRouter(); // Use the router from expo-router
 
   return (
     <View style={[styles.toggleContainer, { backgroundColor: isDarkMode ? '#222' : '#eee' }]}>
       <TouchableOpacity
-        onPress={() => router.push('/LoginScreen')} // Use router.push() to navigate to LoginScreen
+        onPress={() => router.push('/LoginScreen')} // Use router.push() instead of navigation.navigate()
         style={[styles.toggleButton, activeScreen === 'login' && styles.activeButton]}
       >
         <Text style={[styles.toggleText, activeScreen === 'login' && styles.activeText]}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => router.push('/RegisterScreen')} // Use router.push() to navigate to RegisterScreen
+        onPress={() => router.push('/RegisterScreen')} // Use router.push() for navigation
         style={[styles.toggleButton, activeScreen === 'register' && styles.activeButton]}
       >
         <Text style={[styles.toggleText, activeScreen === 'register' && styles.activeText]}>Register</Text>
