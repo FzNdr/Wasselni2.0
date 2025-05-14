@@ -1,25 +1,23 @@
-// components/FormToggle.js
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, useColorScheme } from 'react-native';
-import { useRouter } from 'expo-router'; // Import useRouter
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 const FormToggle = ({ activeScreen }) => {
   const isDarkMode = useColorScheme() === 'dark';
-  const router = useRouter(); // Use the router from expo-router
+  const router = useRouter();
 
   return (
     <View style={[styles.toggleContainer, { backgroundColor: isDarkMode ? '#222' : '#eee' }]}>
       <TouchableOpacity
-        onPress={() => router.push('/LoginScreen')} // Use router.push() instead of navigation.navigate()
-        style={[styles.toggleButton, activeScreen === 'login' && styles.activeButton]}
+        onPress={() => router.push('screens/Auth/LoginScreen')}
+        style={[styles.toggleButton, activeScreen === 'LoginScreen' && styles.activeButton]}
       >
-        <Text style={[styles.toggleText, activeScreen === 'login' && styles.activeText]}>Login</Text>
+        <Text style={[styles.toggleText, activeScreen === 'LoginScreen' && styles.activeText]}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => router.push('/RegisterScreen')} // Use router.push() for navigation
-        style={[styles.toggleButton, activeScreen === 'register' && styles.activeButton]}
+        onPress={() => router.push('screens/Auth/RegisterScreen')}
+        style={[styles.toggleButton, activeScreen === 'RegisterScreen' && styles.activeButton]}
       >
-        <Text style={[styles.toggleText, activeScreen === 'register' && styles.activeText]}>Register</Text>
+        <Text style={[styles.toggleText, activeScreen === 'RegisterScreen' && styles.activeText]}>Register</Text>
       </TouchableOpacity>
     </View>
   );

@@ -11,7 +11,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native';
-import FormToggle from 'E:/Wasselni2.0/components/FormToggle';
+import FormToggle from '../../../components/FormToggle';
 
 const RegisterScreen = () => {
   const router = useRouter();
@@ -57,7 +57,7 @@ const RegisterScreen = () => {
 
   return (
     <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
-      <FormToggle activeScreen="register" />  {/* Remove navigation prop here */}
+      <FormToggle activeScreen="RegisterScreen" />  {/* Remove navigation prop here */}
 
       <Text style={[styles.header, { color: themeStyles.textColor }]}>Register</Text>
       <Text style={{ color: themeStyles.textColor }}>Select Registration Type:</Text>

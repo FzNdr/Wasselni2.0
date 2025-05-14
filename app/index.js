@@ -1,10 +1,12 @@
-// app/index.js
-
-import React from 'react';
+import { Text } from 'react-native';
 import RegisterScreen from './screens/Auth/RegisterScreen';
 
 const Index = () => {
-  return <RegisterScreen />;
+  return (
+    <Text>
+      <RegisterScreen />
+    </Text>
+  );
 };
 
 export default Index;

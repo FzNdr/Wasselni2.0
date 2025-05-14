@@ -10,7 +10,7 @@ import {
   View,
   useColorScheme
 } from 'react-native';
-import FormToggle from 'E:/Wasselni2.0/components/FormToggle';
+import FormToggle from '../../../components/FormToggle';
 
 function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -61,7 +61,7 @@ function LoginScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
-      <FormToggle activeScreen="login" />
+      <FormToggle activeScreen="LoginScreen" />
       <ScrollView
         contentContainerStyle={[
           styles.formContainer,
