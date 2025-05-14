@@ -84,12 +84,12 @@ const RegisterScreen = () => {
           <Text style={[styles.sectionHeader, { color: themeStyles.textColor }]}>Personal Information</Text>
 
           <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Username" placeholderTextColor={themeStyles.placeholderTextColor} value={username} onChangeText={setUsername} />
+          <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Password" placeholderTextColor={themeStyles.placeholderTextColor} value={password} onChangeText={setPassword} secureTextEntry />
           <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="First Name" placeholderTextColor={themeStyles.placeholderTextColor} value={firstName} onChangeText={setFirstName} />
           <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Last Name" placeholderTextColor={themeStyles.placeholderTextColor} value={lastName} onChangeText={setLastName} />
           <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Phone Number" placeholderTextColor={themeStyles.placeholderTextColor} value={phoneNumber} onChangeText={setPhoneNumber} />
           <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Government ID" placeholderTextColor={themeStyles.placeholderTextColor} value={govId} onChangeText={setGovId} />
-          <TextInput style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]} placeholder="Password" placeholderTextColor={themeStyles.placeholderTextColor} value={password} onChangeText={setPassword} secureTextEntry />
-
+          
           {registrationType === 'Driver' && (
             <>
               <Text style={[styles.sectionHeader, { color: themeStyles.textColor }]}>Vehicle Information</Text>
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 40, // Adjusted for FormToggle height
     paddingHorizontal: 20,
+    marginBottom: '3%',
   },
   formToggleWrapper: {
     alignItems: 'center',
@@ -164,26 +165,29 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
   },
-  formWrapper: {
-    flex: 1,
-    width: '100%',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 10,
-  },
+ formWrapper: {
+  flex: 1,
+  width: '100%',
+  borderRadius: 10,
+  padding: 15,
+  marginTop: 10,
+  marginBottom: 100, // Enough space above the Register button
+},
   formContainer: {
-    flexGrow: 1,
-    paddingBottom: 120, // ensures last input isn't blocked
-  },
+  flexGrow: 1,
+  paddingBottom: '5%', // Smaller buffer just for spacing
+},
   scrollView: {
     width: '100%',
   },
   floatingButton: {
-    position: 'absolute',
-    bottom: '7%',
-    left: '10%',
-    right: '10%',
-  },
+  position: 'absolute',
+  bottom: '5%',
+  left: '10%',
+  right: '10%',
+  zIndex: 10,
+  elevation: 5,
+},
 });
 
 export default RegisterScreen;
