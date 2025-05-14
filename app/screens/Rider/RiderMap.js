@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 2,
-    marginTop:'5%',
+    marginTop:'7%',
     margin: '2%',
     borderRadius: 15,
     overflow: 'hidden',

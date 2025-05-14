@@ -24,7 +24,12 @@ const LoginScreen = () => {
 
   const handleLogin = () => {
     if (username && password) {
-      router.push('/HomeScreen');
+      // Navigate based on the selected login type
+      if (loginType === 'Rider') {
+        router.push('/screens/Rider/RiderMap'); // For Rider
+      } else if (loginType === 'Driver') {
+        router.push('/screens/Driver/DriverMap'); // For Driver (Adjust path as needed)
+      }
     } else {
       Alert.alert('Missing Fields', 'Please fill in all the required fields.');
     }
