@@ -101,6 +101,10 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 2,
+    marginTop:'5%',
+    margin: '2%',
+    borderRadius: 15,
+    overflow: 'hidden',
   },
   tableContainer: {
     flex: 1,

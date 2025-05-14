@@ -1,140 +1,182 @@
+import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Alert,
-  Button,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
   useColorScheme
 } from 'react-native';
 import FormToggle from '../../../components/FormToggle';
 
-function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const isDarkMode = useColorScheme() === 'dark';
+const LoginScreen = () => {
   const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter both email and password.');
-      return;
-    }
+  const [loginType, setLoginType] = useState('Rider');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
-    try {
-      const response = await fetch('http://YOUR_BACKEND_URL/services/login.php', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok && data.success) {
-        if (data.user.type === 'Driver') {
-          router.push('/DriverMap');
-        } else {
-          router.push('/RiderMap');
-        }
-      } else {
-        Alert.alert('Login Failed', data.message || 'Invalid credentials');
-      }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'Something went wrong. Please try again later.');
+  const handleLogin = () => {
+    if (username && password) {
+      router.push('/HomeScreen');
+    } else {
+      Alert.alert('Missing Fields', 'Please fill in all the required fields.');
     }
   };
 
-  // Dynamic theme styles
   const themeStyles = {
-    backgroundColor: isDarkMode ? '#121212' : '#f2f2f2',
-    inputBackground: isDarkMode ? '#333' : '#f9f9f9',
-    textColor: isDarkMode ? '#fff' : '#000',
+    backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
+    textColor: isDarkMode ? '#FFFFFF' : '#1c1c1c',
+    inputBackground: isDarkMode ? '#1e1e1e' : '#eeeeee',
+    placeholderTextColor: isDarkMode ? '#aaa' : '#555',
+    formContainerColor: isDarkMode ? '#1a1a1a' : '#f0f0f0',
     borderColor: isDarkMode ? '#555' : '#ccc',
     buttonColor: isDarkMode ? '#1e90ff' : '#007AFF',
+    buttonTextColor: isDarkMode ? '#fff' : '#fff', // Adjusted for button text color
+    buttonPadding: 15,
+    buttonRadius: 8,
+    buttonFontSize: 18,
   };
 
   return (
     <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
-      <FormToggle activeScreen="LoginScreen" />
-      <ScrollView
-        contentContainerStyle={[
-          styles.formContainer,
+      <View style={styles.formToggleWrapper}>
+        <FormToggle activeScreen="LoginScreen" />
+      </View>
+
+      <Text style={[styles.header, { color: themeStyles.textColor }]}>Login</Text>
+
+      <Text style={{ color: themeStyles.textColor }}>Select Login Type:</Text>
+      <View
+        style={[
+          styles.pickerWrapper,
+          { backgroundColor: themeStyles.inputBackground, borderColor: themeStyles.borderColor },
+        ]}
+      >
+        <Picker
+          selectedValue={loginType}
+          onValueChange={(itemValue) => setLoginType(itemValue)}
+          style={[styles.picker, { color: themeStyles.textColor }]}
+          dropdownIconColor={themeStyles.textColor}
+        >
+          <Picker.Item label="Rider" value="Rider" />
+          <Picker.Item label="Driver" value="Driver" />
+        </Picker>
+      </View>
+
+      <View style={[styles.formWrapper, { backgroundColor: themeStyles.formContainerColor }]}>
+        <ScrollView contentContainerStyle={styles.formContainer} style={styles.scrollView}>
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: themeStyles.inputBackground,
+                color: themeStyles.textColor,
+                borderColor: themeStyles.borderColor,
+              },
+            ]}
+            placeholder="Username"
+            placeholderTextColor={themeStyles.placeholderTextColor}
+            value={username}
+            onChangeText={setUsername}
+          />
+          <TextInput
+            style={[
+              styles.input,
+              {
+                backgroundColor: themeStyles.inputBackground,
+                color: themeStyles.textColor,
+                borderColor: themeStyles.borderColor,
+              },
+            ]}
+            placeholder="Password"
+            placeholderTextColor={themeStyles.placeholderTextColor}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </ScrollView>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.button,
           {
-            backgroundColor: isDarkMode ? '#1e1e1e' : '#fff',
-            borderColor: themeStyles.borderColor,
+            backgroundColor: themeStyles.buttonColor,
+            paddingVertical: themeStyles.buttonPadding,
+            borderRadius: themeStyles.buttonRadius,
           },
         ]}
-        keyboardShouldPersistTaps="handled"
+        onPress={handleLogin}
       >
-        <Text style={[styles.header, { color: themeStyles.textColor }]}>Login</Text>
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: themeStyles.inputBackground,
-              color: themeStyles.textColor,
-              borderColor: themeStyles.borderColor,
-            },
-          ]}
-          placeholder="Email"
-          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={[
-            styles.input,
-            {
-              backgroundColor: themeStyles.inputBackground,
-              color: themeStyles.textColor,
-              borderColor: themeStyles.borderColor,
-            },
-          ]}
-          placeholder="Password"
-          placeholderTextColor={isDarkMode ? '#aaa' : '#666'}
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-        <View style={styles.buttonContainer}>
-          <Button title="Login" onPress={handleLogin} color={themeStyles.buttonColor} />
-        </View>
-      </ScrollView>
+        <Text style={[styles.buttonText, { color: themeStyles.buttonTextColor }]}>Login</Text>
+      </TouchableOpacity>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 40, // Adjusted for FormToggle height
+    paddingHorizontal: 20,
   },
-  formContainer: {
-    margin: 20,
-    padding: 20,
+  formToggleWrapper: {
+    alignItems: 'center',
+    marginTop: '10%',
+  },
+  formWrapper: {
+    marginBottom: 20,
     borderRadius: 10,
+    padding: 10,
+  },
+  pickerWrapper: {
+    height: 50,
     borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 15,
+    justifyContent: 'center',
+  },
+  picker: {
+    width: '100%',
+    height: '100%',
+    paddingHorizontal: 10,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    height: 50,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  scrollView: {
+    marginBottom: 20,
   },
   header: {
     fontSize: 28,
     fontWeight: 'bold',
+    textAlign: 'center',
     marginBottom: 20,
-    alignSelf: 'center',
   },
-  input: {
-    height: 50,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 15,
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
   },
-  buttonContainer: {
-    marginTop: 20,
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
