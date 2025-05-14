@@ -8,6 +8,9 @@ export const AppProvider = ({ children }) => {
   const [pickupLocation, setPickupLocation] = useState(null);
   const [dropoffLocation, setDropoffLocation] = useState(null);
 
+  // NEW: Add userInfo for ProfileScreen
+  const [userInfo, setUserInfo] = useState(null); // This will hold the user's data
+
   return (
     <AppContext.Provider
       value={{
@@ -19,6 +22,8 @@ export const AppProvider = ({ children }) => {
         setPickupLocation,
         dropoffLocation,
         setDropoffLocation,
+        userInfo,
+        setUserInfo, // <-- Make sure to expose this too
       }}
     >
       {children}
@@ -27,5 +32,3 @@ export const AppProvider = ({ children }) => {
 };
 
 export default AppProvider;
-
-

@@ -1,18 +1,23 @@
 // app/_layout.js
 import { Stack } from 'expo-router';
+import { AppProvider } from './context/AppContext';
 
 export default function Layout() {
   return (
-    <Stack
-      initialRouteName="screens/Auth/RegisterScreen"
-      screenOptions={{
-        headerShown: false,
-      }}
-    >
-      <Stack.Screen name="screens/Auth/LoginScreen" />
-      <Stack.Screen name="screens/Auth/RegisterScreen" />
-      <Stack.Screen name="screens/Driver/DriverMap" />
-      <Stack.Screen name="screens/Rider/RiderMap" />
-    </Stack>
+    <AppProvider>
+      <Stack
+        initialRouteName="screens/Auth/RegisterScreen"
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
+        <Stack.Screen name="screens/Auth/LoginScreen"/>
+        <Stack.Screen name="screens/Auth/RegisterScreen"/>
+        <Stack.Screen name="screens/Driver/DriverHomePage"/>
+        <Stack.Screen name="screens/Rider/RiderHomePage"/>
+        <Stack.Screen name="screens/Profile/ProfileScreen"/>
+        
+      </Stack>
+    </AppProvider>
   );
 }
