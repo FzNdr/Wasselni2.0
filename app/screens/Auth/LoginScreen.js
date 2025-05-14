@@ -38,7 +38,7 @@ const LoginScreen = () => {
     formContainerColor: isDarkMode ? '#1a1a1a' : '#f0f0f0',
     borderColor: isDarkMode ? '#555' : '#ccc',
     buttonColor: isDarkMode ? '#1e90ff' : '#007AFF',
-    buttonTextColor: isDarkMode ? '#fff' : '#fff', // Adjusted for button text color
+    buttonTextColor: isDarkMode ? '#fff' : '#fff',
     buttonPadding: 15,
     buttonRadius: 8,
     buttonFontSize: 18,
@@ -145,8 +145,8 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '100%',
-    height: '100%',
-    paddingHorizontal: 10,
+    marginVertical: 10,
+    backgroundColor: 'transparent',
   },
   sectionHeader: {
     fontSize: 18,
