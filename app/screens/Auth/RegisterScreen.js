@@ -1,6 +1,7 @@
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
+
 import {
   Alert,
   Button,
@@ -40,7 +41,7 @@ const RegisterScreen = () => {
         Alert.alert('Missing Fields', 'Please fill in all the required driver fields.');
         return;
       }
-      router.push('/LoginScreen');
+      router.push('screens/Auth/DriverHomePage');
     } else {
       Alert.alert('Missing Fields', 'Please fill in all the required fields.');
     }

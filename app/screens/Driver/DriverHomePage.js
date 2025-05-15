@@ -1,14 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  useColorScheme,
-} from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Button, FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 const DriverHomePage = () => {
   const router = useRouter();
@@ -63,8 +56,8 @@ const DriverHomePage = () => {
         diffMs <= 0
           ? 'Expired'
           : `${Math.floor(diffMs / 3600000)}h ${Math.floor(
-              (diffMs % 3600000) / 60000
-            )}m`;
+            (diffMs % 3600000) / 60000
+          )}m`;
       return {
         ...promo,
         timeRemaining: remaining,
@@ -148,13 +141,17 @@ const DriverHomePage = () => {
         keyExtractor={(item) => item.id}
         style={styles.promotionsList}
       />
-
+      <View>  
+              <Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
+      </View>
       <View
+
         style={[
           styles.pointsContainer,
           { backgroundColor: isDarkMode ? '#333' : '#fff' },
         ]}
       >
+
         <Text
           style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}
         >

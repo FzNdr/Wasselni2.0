@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Button, ScrollView } from 'react-native';
-import { AppContext } from '../../context/AppContext';
 import { useRouter } from 'expo-router';
-  const router = useRouter();
+import { useContext } from 'react';
+import { Button, ScrollView, StyleSheet, Text } from 'react-native';
+import { AppContext } from '../../context/AppContext';
 
-const ProfileScreen = ({ navigation }) => {
+const ProfileScreen = () => {
+  const router = useRouter();
   const { userRole, setUserRole, userInfo } = useContext(AppContext);
 
   const handleLogout = () => {
@@ -19,10 +19,21 @@ const ProfileScreen = ({ navigation }) => {
           <Text style={styles.info}>Full Name: {userInfo?.name}</Text>
           <Text style={styles.info}>Email: {userInfo?.email}</Text>
           <Text style={styles.info}>Phone: {userInfo?.phone}</Text>
+          <Text style={styles.info}>Date Joined: {userInfo?.dateJoined}</Text>
           <Text style={styles.info}>Total Rides: {userInfo?.totalRides}</Text>
+          <Text style={styles.info}>Total Distance Traveled: {userInfo?.totalDistance} km</Text>
           <Text style={styles.info}>Points: {userInfo?.points}</Text>
           <Text style={styles.info}>Rating: {userInfo?.rating} ⭐</Text>
-
+          <Text style={styles.sectionHeader}>Payment Methods</Text>
+          {userInfo?.paymentMethods?.map((method, index) => (
+            <Text key={index} style={styles.info}>• {method}</Text>
+          ))}
+          <Text style={styles.sectionHeader}>Preferences</Text>
+          <Text style={styles.info}>Preferred Ride Type: {userInfo?.preferredRideType}</Text>
+          <Text style={styles.sectionHeader}>Security</Text>
+          <Text style={styles.info}>Two-Factor Authentication: {userInfo?.twoFactorAuth ? 'Enabled' : 'Disabled'}</Text>
+          <Text style={styles.sectionHeader}>Support</Text>
+          <Text style={styles.info}>Help Center: Available in menu</Text>
         </>
       );
     } else if (userRole === 'Driver') {
@@ -72,6 +83,13 @@ const styles = StyleSheet.create({
   info: {
     fontSize: 16,
     marginBottom: 8,
+    textAlign: 'center',
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 20,
+    marginBottom: 10,
     textAlign: 'center',
   },
 });

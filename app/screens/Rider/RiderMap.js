@@ -1,8 +1,9 @@
+import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location';
-import React from 'react';
+
+
 const RiderMap = () => {
   const [region, setRegion] = useState(null);
   const [pickupAddress, setPickupAddress] = useState('');

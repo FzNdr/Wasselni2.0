@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 const DriverMap = () => {
@@ -27,8 +27,8 @@ const DriverMap = () => {
   useEffect(() => {
     // Simulate fetching the driver's location
     setLocation({
-      latitude: 37.78825,
-      longitude: -122.4324,
+      latitude: 35.520678,
+      longitude:33.818437 ,
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     });

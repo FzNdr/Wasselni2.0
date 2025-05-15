@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, useColorScheme } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Button, FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
 
 const RiderHomePage = () => {
   const router = useRouter();
@@ -16,12 +16,26 @@ const RiderHomePage = () => {
       timeRemaining: '2 days 5 hours',
       description: 'Get 10% off on your first ride with us.',
     },
-    {
+     {
       id: '2',
       name: 'Free Ride Up to $5',
       startDate: '2025-05-10',
       timeRemaining: '1 day 3 hours',
       description: 'Free ride for the first $5 of your trip.',
+    },
+    {
+      id: '3',
+      name: '10% Off First Ride',
+      startDate: '2025-05-14',
+      timeRemaining: '2 days 5 hours',
+      description: 'Get 10% off on your first ride with us.',
+    },
+    {
+      id: '4',
+      name: '10% Off First Ride',
+      startDate: '2025-05-14',
+      timeRemaining: '2 days 5 hours',
+      description: 'Get 10% off on your first ride with us.',
     },
   ]);
 
@@ -58,7 +72,7 @@ const RiderHomePage = () => {
         keyExtractor={(item) => item.id}
         style={styles.promotionsList}
       />
-
+<Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
       <View style={[styles.pointsContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
         <Text style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}>
           Your Accumulated Points: {accumulatedPoints}
@@ -72,7 +86,9 @@ const RiderHomePage = () => {
           </Text>
         </View>
       </View>
+      
     </View>
+    
   );
 };
 
