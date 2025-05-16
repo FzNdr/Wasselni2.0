@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\RiderLocationController;
 use App\Http\Controllers\Api\RideRequestController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\DriverApplicationController;
+use App\Http\Controllers\Api\RideHistoryController;
+
 // Public
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -56,3 +58,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/driver-applications/{id}/approve', [DriverApplicationController::class, 'approve']);
     Route::post('/driver-applications/{id}/deny', [DriverApplicationController::class, 'deny']);
 });
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/rider/history', [RideHistoryController::class, 'riderHistory']);
+    Route::get('/driver/history', [RideHistoryController::class, 'driverHistory']);
+});
+use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\UserController;
+
+Route::get('/promotions', [PromotionController::class, 'index']);
+Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);

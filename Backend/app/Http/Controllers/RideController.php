@@ -41,3 +41,17 @@ class RideController extends Controller
         ]);
     }
 }
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Ride;
+use App\Models\User;
+
+class RideController extends Controller
+{
+    public function index()
+    {
+        $rides = Ride::with('rider', 'driver')->orderByDesc('created_at')->get();
+        return view('rides.index', compact('rides'));
+    }
+}

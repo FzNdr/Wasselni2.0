@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useContext } from 'react';
-import { Button, ScrollView, StyleSheet, Text } from 'react-native';
+import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AppContext } from '../../context/AppContext';
 
 const ProfileScreen = () => {
@@ -10,6 +10,10 @@ const ProfileScreen = () => {
   const handleLogout = () => {
     setUserRole(null);
     router.push('/screens/Auth/LoginScreen');
+  };
+
+  const handleRidesHistoryPress = () => {
+    router.push('/screens/RidesHistoryScreen'); // adjust if your route is different
   };
 
   const renderUserDetails = () => {
@@ -59,6 +63,12 @@ const ProfileScreen = () => {
       <Text style={styles.header}>Profile</Text>
       <Text style={styles.role}>Role: {userRole || 'Guest'}</Text>
       {renderUserDetails()}
+
+      {/* New Rides History Button */}
+      <View style={styles.buttonContainer}>
+        <Button title="Rides History" onPress={handleRidesHistoryPress} />
+      </View>
+
       <Button title="Logout" onPress={handleLogout} />
     </ScrollView>
   );
@@ -91,6 +101,10 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
     textAlign: 'center',
+  },
+  buttonContainer: {
+    marginVertical: 20,
+    width: '60%',
   },
 });
 
