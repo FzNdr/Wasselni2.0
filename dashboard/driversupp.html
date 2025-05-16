@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Drivers Status Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .dashboard-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .top-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .box {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .box h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .promotion-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .promotion-buttons a {
+      padding: 12px;
+      font-size: 14px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .promotion-buttons a:hover {
+      background-color: #218838;
+    }
+
+    .driver-overview {
+      max-width: 600px;
+      margin: auto;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .driver-overview h2 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+
+    .stat-label {
+      font-size: 18px;
+      font-weight: bold;
+      flex: 1;
+    }
+
+    .stat-value {
+      background-color: #e9ecef;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 10px 20px;
+      min-width: 150px;
+      text-align: center;
+      margin-right: 10px;
+    }
+
+    .link-button {
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .link-button:hover {
+      background-color: #0056b3;
+    }
+
+    @media screen and (max-width: 600px) {
+      .stat-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .stat-value {
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Dashboard Navigation -->
+  <div class="dashboard-section">
+    <div class="top-container">
+      <div class="box">
+        <h3>Performance Metrics</h3>
+        <div class="promotion-buttons">
+          <a href="stats.html">Monthly</a>
+          <a href="drivermetrics.html">Driver Metrics</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>Promotion Management</h3>
+        <div class="promotion-buttons">
+          <a href="addprom.html">Add Promotion</a>
+          <a href="updateprom.html">Update Promotion</a>
+          <a href="deleteprom.html">Delete Promotion</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>User Support</h3>
+        <div class="promotion-buttons">
+          <a href="driversupp.html">Drivers</a>
+          <a href="clientsupp.html">Clients</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Driver Overview -->
+  <div class="driver-overview">
+    <h2>Driver Overview</h2>
+
+    <div class="stat-row">
+      <div class="stat-label">Drivers Pending Approval:</div>
+      <div class="stat-value">12</div>
+      <a href="requests.html" class="link-button">Check requests</a>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-label">Total Drivers:</div>
+      <div class="stat-value">250</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-label">Active Drivers Last Month:</div>
+      <div class="stat-value">180</div>
+    </div>
+  </div>
+
+</body>
+</html>

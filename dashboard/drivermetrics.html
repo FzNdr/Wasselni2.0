@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .top-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .box {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    .box h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .promotion-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .promotion-buttons a {
+      padding: 12px;
+      font-size: 14px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .promotion-buttons a:hover {
+      background-color: #218838;
+    }
+
+    .promotions-table-container {
+      flex: 2;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .promotions-table-container h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="dashboard">
+
+    <div class="top-container">
+      <div class="box">
+        <h3>Performance Metrics</h3>
+        <div class="promotion-buttons">
+          <a href="stats.html">Monthly</a>
+          <a href="drivermetrics.html">Driver Metrics</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>Promotion Management</h3>
+        <div class="promotion-buttons">
+          <a href="addprom.html">Add Promotion</a>
+          <a href="updateprom.html">Update Promotion</a>
+          <a href="deleteprom.html">Delete Promotion</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>User Support</h3>
+        <div class="promotion-buttons">
+          <a href="driversupp.html">Drivers</a>
+          <a href="clientsupp.html">Clients</a>
+        </div>
+      </div>
+    </div>
+
+</body>
+</html>

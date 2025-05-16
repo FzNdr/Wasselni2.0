@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Update Promotion</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f6f9;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      background-color: white;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 1000px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    .form-section {
+      flex: 1;
+      padding: 20px;
+    }
+
+    .form-section label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+    }
+
+    .form-section input[type="text"],
+    .form-section input[type="date"],
+    .form-section textarea,
+    .form-section select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    .add-link {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background-color: #0755ff;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    @media screen and (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+    }
+        body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+    }
+
+    .dashboard {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .top-container {
+      display: flex;
+      gap: 20px;
+    }
+
+    .box {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      flex: 1;
+    }
+
+    .box h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .promotion-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .promotion-buttons a {
+      padding: 12px;
+      font-size: 14px;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      text-align: center;
+      border-radius: 6px;
+      font-weight: bold;
+    }
+
+    .promotion-buttons a:hover {
+      background-color: #218838;
+    }
+
+    .promotions-table-container {
+      flex: 2;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .promotions-table-container h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+<div class="dashboard">
+
+    <div class="top-container">
+      <div class="box">
+        <h3>Performance Metrics</h3>
+        <div class="promotion-buttons">
+          <a href="stats.html">Monthly</a>
+          <a href="drivermetrics.html">Driver Metrics</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>Promotion Management</h3>
+        <div class="promotion-buttons">
+          <a href="addprom.html">Add Promotion</a>
+          <a href="updateprom.html">Update Promotion</a>
+          <a href="deleteprom.html">Delete Promotion</a>
+        </div>
+      </div>
+
+      <div class="box">
+        <h3>User Support</h3>
+        <div class="promotion-buttons">
+          <a href="driversupp.html">Drivers</a>
+          <a href="clientsupp.html">Clients</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <br>
+  <div class="container">
+    <!-- Left Section -->
+    <div class="form-section">
+      <label for="promotionId">Promotion ID</label>
+      <input type="text" id="promotionId" name="promotionId" placeholder="Enter Promotion ID">
+
+      <label for="title">Promotion Title</label>
+      <input type="text" id="title" name="title" placeholder="Enter Promotion Title">
+
+      <label for="startDate">Start Date</label>
+      <input type="date" id="startDate" name="startDate">
+
+      <label for="endDate">End Date</label>
+      <input type="date" id="endDate" name="endDate">
+
+      <label for="description">Promotion Description</label>
+      <textarea id="description" name="description" rows="5" placeholder="Enter Promotion Description"></textarea>
+    </div>
+
+    <!-- Right Section -->
+    <div class="form-section">
+      <label for="action">Promotion Action</label>
+      <select id="action" name="action">
+        <option value="">Select an action</option>
+        <option value="free_rides">Free Rides</option>
+        <option value="double_rewards">Double Reward Points</option>
+        <option value="item_discount">Item Store Discount</option>
+      </select>
+    </div>
+
+    <!-- Update Link -->
+    <a href="dashboard.html" class="add-link">Update</a>
+  </div>
+
+</body>
+</html>
