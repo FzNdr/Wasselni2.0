@@ -7,7 +7,7 @@ use App\Http\Controllers\Api\RiderController;
 use App\Http\Controllers\Api\RiderLocationController;
 use App\Http\Controllers\Api\RideRequestController;
 use App\Http\Controllers\Api\PaymentController;
-
+use App\Http\Controllers\DriverApplicationController;
 // Public
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
@@ -49,3 +49,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ride-requests/{id}/cancel', [RideRequestController::class, 'cancel']);
 });
 Route::post('/rides', [RideController::class, 'store']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/driver-applications', [DriverApplicationController::class, 'store']);
+    Route::get('/driver-applications', [DriverApplicationController::class, 'index']);
+    Route::post('/driver-applications/{id}/approve', [DriverApplicationController::class, 'approve']);
+    Route::post('/driver-applications/{id}/deny', [DriverApplicationController::class, 'deny']);
+});

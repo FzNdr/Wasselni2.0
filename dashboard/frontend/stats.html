@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Monthly Performance Metrics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Monthly Performance Metrics</h2>
+    <table id="performance-metrics">
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>Total Rides</th>
+          <th>Total Sales ($)</th>
+          <th>New Users</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Filled by JS -->
+      </tbody>
+    </table>
+
+    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+  </div>
+
+  <script>
+    fetch('fetch_performance_metrics.php')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#performance-metrics tbody');
+        tbody.innerHTML = '';
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${row.month}</td>
+            <td>${row.total_rides}</td>
+            <td>${parseFloat(row.total_sales).toFixed(2)}</td>
+            <td>${row.new_users}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(() => {
+        document.querySelector('#performance-metrics tbody').innerHTML =
+          '<tr><td colspan="4">Failed to load data.</td></tr>';
+      });
+  </script>
+</body>
+</html>

@@ -1,14 +1,16 @@
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-
+import * as ImagePicker from 'expo-image-picker';
 import {
   Alert,
   Button,
+  Image,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   useColorScheme,
   View,
 } from 'react-native';
@@ -23,7 +25,7 @@ const RegisterScreen = () => {
   const [username, setUsername] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [phone_number, setphone_number] = useState('');
   const [govId, setGovId] = useState('');
   const [password, setPassword] = useState('');
   const [drivingLicense, setDrivingLicense] = useState('');
@@ -32,16 +34,51 @@ const RegisterScreen = () => {
   const [vehicleType, setVehicleType] = useState('SUV');
   const [totalSeats, setTotalSeats] = useState('');
 
+  // New state for image picker
+  const [driverPhoto, setDriverPhoto] = useState(null);
+
+  // Request permission & pick image from gallery or camera
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission required', 'Camera permission is required to upload the photo.');
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled) {
+      setDriverPhoto(result.assets[0]);
+    }
+  };
+
   const handleRegister = () => {
-    if (username && firstName && lastName && phoneNumber && govId && password) {
-      if (
-        registrationType === 'Driver' &&
-        (!drivingLicense || !carPlate || !vehicleBrand || !vehicleType || !totalSeats)
-      ) {
-        Alert.alert('Missing Fields', 'Please fill in all the required driver fields.');
-        return;
+    if (username && firstName && lastName && phone_number && govId && password) {
+      if (registrationType === 'Driver') {
+        if (
+          !drivingLicense ||
+          !carPlate ||
+          !vehicleBrand ||
+          !vehicleType ||
+          !totalSeats
+        ) {
+          Alert.alert('Missing Fields', 'Please fill in all the required driver fields.');
+          return;
+        }
+        if (!driverPhoto) {
+          Alert.alert('Photo Required', 'Please upload a photo holding your Government ID, Driving License, and showing your car plate.');
+          return;
+        }
       }
-      router.push('screens/Auth/DriverHomePage');
+
+      // Here you would send the data + driverPhoto.uri to your backend API
+      // Example: form data with image as multipart/form-data upload
+
+      router.push('screens/Auth/DriverHomePage'); // Or wherever after registration
     } else {
       Alert.alert('Missing Fields', 'Please fill in all the required fields.');
     }
@@ -173,8 +210,9 @@ const RegisterScreen = () => {
             ]}
             placeholder="Phone Number"
             placeholderTextColor={themeStyles.placeholderTextColor}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
+            value={phone_number}
+            onChangeText={setphone_number}
+            keyboardType="phone-pad"
           />
           <TextInput
             style={[
@@ -257,7 +295,7 @@ const RegisterScreen = () => {
                 keyboardType="numeric"
               />
 
-              <Text style={{ color: themeStyles.textColor }}>Vehicle Type</Text>
+              <Text style={{ color: themeStyles.textColor, marginTop: 10 }}>Vehicle Type</Text>
               <View
                 style={[
                   styles.pickerWrapper,
@@ -278,6 +316,31 @@ const RegisterScreen = () => {
                   <Picker.Item label="Van" value="Van" />
                 </Picker>
               </View>
+
+              {/* New Section: Driver Photo Upload */}
+              <Text style={[styles.sectionHeader, { color: themeStyles.textColor, marginTop: 20 }]}>
+                Upload Photo Holding IDs & Car Plate
+              </Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.photoUploadButton,
+                  { backgroundColor: themeStyles.buttonColor },
+                ]}
+                onPress={pickImage}
+              >
+                <Text style={{ color: themeStyles.buttonTextColor, textAlign: 'center' }}>
+                  {driverPhoto ? 'Change Photo' : 'Upload Photo'}
+                </Text>
+              </TouchableOpacity>
+
+              {driverPhoto && (
+                <Image
+                  source={{ uri: driverPhoto.uri }}
+                  style={styles.previewImage}
+                  resizeMode="contain"
+                />
+              )}
             </>
           )}
         </ScrollView>
@@ -289,6 +352,7 @@ const RegisterScreen = () => {
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -352,6 +416,17 @@ const styles = StyleSheet.create({
     right: '10%',
     zIndex: 10,
     elevation: 5,
+  },
+  photoUploadButton: {
+    padding: 14,
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  previewImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+    marginTop: 10,
   },
 });
 

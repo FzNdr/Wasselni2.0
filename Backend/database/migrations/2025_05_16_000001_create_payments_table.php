@@ -10,16 +10,12 @@ class CreatePaymentsTable extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('ride_request_id');
-            $table->unsignedBigInteger('rider_id');
-            $table->unsignedBigInteger('driver_id')->nullable();
+            $table->foreignId('ride_request_id')->constrained('rides')->onDelete('cascade');
+            $table->foreignId('rider_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('driver_id')->nullable()->constrained('users')->onDelete('set null');
             $table->enum('payment_method', ['cash', 'credits']);
             $table->decimal('amount', 8, 2);
             $table->timestamps();
-
-            $table->foreign('ride_request_id')->references('id')->on('ride_requests')->onDelete('cascade');
-            $table->foreign('rider_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 

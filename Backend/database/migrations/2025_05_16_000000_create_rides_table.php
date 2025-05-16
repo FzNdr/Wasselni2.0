@@ -10,16 +10,13 @@ class CreateRidesTable extends Migration
     {
         Schema::create('rides', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('rider_id');
-            $table->unsignedBigInteger('driver_id')->nullable();
+            $table->foreignId('rider_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('driver_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('pickup_location');
             $table->string('dropoff_location');
             $table->enum('status', ['requested', 'accepted', 'completed', 'canceled'])->default('requested');
             $table->decimal('fare', 8, 2)->nullable();
             $table->timestamps();
-
-            $table->foreign('rider_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('driver_id')->references('id')->on('users')->onDelete('set null');
         });
     }
 
