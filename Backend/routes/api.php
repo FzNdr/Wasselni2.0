@@ -48,3 +48,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ride-requests/{id}', [RideRequestController::class, 'show']);
     Route::post('/ride-requests/{id}/cancel', [RideRequestController::class, 'cancel']);
 });
+Route::post('/rides', [RideController::class, 'store']);

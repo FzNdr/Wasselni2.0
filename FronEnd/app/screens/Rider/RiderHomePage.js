@@ -1,14 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native';
+import RideStatusListener from './components/RideStatusListener'; // Adjust path if needed
 
 const RiderHomePage = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const [promotions, setPromotions] = useState([
+  // TODO: Replace with actual logged-in user ID from auth or context
+  const userId = 123;
+
+  const [promotions] = useState([
     {
       id: '1',
       name: '10% Off First Ride',
@@ -16,7 +28,7 @@ const RiderHomePage = () => {
       timeRemaining: '2 days 5 hours',
       description: 'Get 10% off on your first ride with us.',
     },
-     {
+    {
       id: '2',
       name: 'Free Ride Up to $5',
       startDate: '2025-05-10',
@@ -39,24 +51,28 @@ const RiderHomePage = () => {
     },
   ]);
 
-  const [accumulatedPoints, setAccumulatedPoints] = useState(250); // Example points
+  const [accumulatedPoints] = useState(250);
 
   const handleProfileNavigation = () => {
-    router.push('/screens/Profile/ProfileScreen'); // Navigate to ProfileScreen
+    router.push('/screens/Profile/ProfileScreen');
   };
 
-  const renderPromotionItem = ({ item }) => {
-    return (
-      <View style={styles.promotionItem}>
-        <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>{item.name}</Text>
-        <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Start Date: {item.startDate}</Text>
-        <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Time Remaining: {item.timeRemaining}</Text>
-        <Text style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}>
-          {item.description}
-        </Text>
-      </View>
-    );
-  };
+  const renderPromotionItem = ({ item }) => (
+    <View style={styles.promotionItem}>
+      <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>
+        {item.name}
+      </Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
+        Start Date: {item.startDate}
+      </Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
+        Time Remaining: {item.timeRemaining}
+      </Text>
+      <Text style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}>
+        {item.description}
+      </Text>
+    </View>
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' }]}>
@@ -64,7 +80,9 @@ const RiderHomePage = () => {
         <Ionicons name="person-circle" size={50} color={isDarkMode ? '#FFF' : '#000'} />
       </TouchableOpacity>
 
-      <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>Ongoing Promotions</Text>
+      <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>
+        Ongoing Promotions
+      </Text>
 
       <FlatList
         data={promotions}
@@ -72,7 +90,12 @@ const RiderHomePage = () => {
         keyExtractor={(item) => item.id}
         style={styles.promotionsList}
       />
-<Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
+
+      <Button
+        title="Start Your Journey"
+        onPress={() => router.push('/screens/Rider/RiderMap')}
+      />
+
       <View style={[styles.pointsContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
         <Text style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}>
           Your Accumulated Points: {accumulatedPoints}
@@ -86,9 +109,10 @@ const RiderHomePage = () => {
           </Text>
         </View>
       </View>
-      
+
+      {/* WebSocket listener component for ride status */}
+      <RideStatusListener userId={userId} />
     </View>
-    
   );
 };
 

@@ -1,55 +1,43 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use App\Models\Ride;
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Services\WebSocketClient;
+use App\Models\Ride;
 
 class RideController extends Controller
 {
-    public function request(Request $request)
+    protected $wsClient;
+
+    public function __construct(WebSocketClient $wsClient)
     {
-        $request->validate([
-            'pickup_lat' => 'required|numeric',
-            'pickup_lng' => 'required|numeric',
-            'dropoff_lat' => 'required|numeric',
-            'dropoff_lng' => 'required|numeric',
-        ]);
-
-        $ride = Ride::create([
-            'rider_id' => auth()->id(),
-            'pickup_lat' => $request->pickup_lat,
-            'pickup_lng' => $request->pickup_lng,
-            'dropoff_lat' => $request->dropoff_lat,
-            'dropoff_lng' => $request->dropoff_lng,
-            'status' => 'requested',
-        ]);
-
-        return response()->json(['ride' => $ride, 'message' => 'Ride requested']);
+        $this->wsClient = $wsClient;
     }
 
-    public function index()
+    public function updateRideStatus(Request $request, $rideId)
     {
-        $rides = Ride::where('rider_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $validated = $request->validate([
+            'status' => 'required|string',
+            'targetUserId' => 'required|integer',
+        ]);
 
-        return response()->json($rides);
-    }
-
-    public function cancel(Request $request)
-    {
-        $ride = Ride::where('id', $request->ride_id)
-            ->where('rider_id', auth()->id())
-            ->firstOrFail();
-
-        if ($ride->status !== 'requested') {
-            return response()->json(['message' => 'Cannot cancel ride after it’s accepted'], 403);
-        }
-
-        $ride->status = 'cancelled';
+        $ride = Ride::findOrFail($rideId);
+        $ride->status = $validated['status'];
         $ride->save();
 
-        return response()->json(['message' => 'Ride cancelled']);
+        $data = [
+            'type' => 'ride_status_update',
+            'rideId' => $rideId,
+            'status' => $validated['status'],
+            'targetUserId' => $validated['targetUserId'],
+        ];
+
+        $this->wsClient->send($data);
+
+        return response()->json([
+            'message' => 'Ride status updated and WebSocket notification sent.',
+        ]);
     }
 }

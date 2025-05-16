@@ -16,7 +16,9 @@ export default function Layout() {
         <Stack.Screen name="screens/Driver/DriverHomePage"/>
         <Stack.Screen name="screens/Rider/RiderHomePage"/>
         <Stack.Screen name="screens/Profile/ProfileScreen"/>
-        
+        <Stack.Screen name="screens/Driver/Driver-RideInProgress"/>
+        <Stack.Screen name="screens/Rider/Rider-RideInProgress"/>
+
       </Stack>
     </AppProvider>
   );

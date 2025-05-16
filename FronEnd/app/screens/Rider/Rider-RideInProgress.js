@@ -1,278 +1,155 @@
-import React, { useEffect, useState } from 'react';
-import {
-  Alert,
-  Modal,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  CheckBox,
-  ActivityIndicator,
+import React, { useContext, useEffect, useState } from 'react';
+import { 
+  Ionicons 
+} from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { 
+  Button, FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View 
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import * as Location from 'expo-location';
-import { Rating } from 'react-native-ratings'; // optional rating UI lib, or create your own
 
-const RideInProgress = ({ route, navigation }) => {
-  // Props passed: riderLocation, driverLocation, rideId, paymentMethod, userType (rider/driver)
-  const {
-    riderLocation,
-    driverLocation,
-    rideId,
-    paymentMethod,
-    userType,
-  } = route.params;
+import { AppContext } from '../context/AppContext'; // adjust the path to where your AppContext is
 
-  const [region, setRegion] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+const RiderHomePage = () => {
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === 'dark';
 
-  const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState('');
-  const [rideCompleted, setRideCompleted] = useState(true);
+  const { userInfo } = useContext(AppContext);
 
-  const [loading, setLoading] = useState(false);
+  // Use real promotions from backend instead of hardcoded ones
+  const [promotions, setPromotions] = useState([]);
+
+  const [accumulatedPoints, setAccumulatedPoints] = useState(250); // Example points
 
   useEffect(() => {
-    if (riderLocation && driverLocation) {
-      // Center map between rider and driver
-      const midLat = (riderLocation.latitude + driverLocation.latitude) / 2;
-      const midLng = (riderLocation.longitude + driverLocation.longitude) / 2;
-      setRegion({
-        latitude: midLat,
-        longitude: midLng,
-        latitudeDelta: Math.abs(riderLocation.latitude - driverLocation.latitude) * 2.5 || 0.01,
-        longitudeDelta: Math.abs(riderLocation.longitude - driverLocation.longitude) * 2.5 || 0.01,
-      });
-    }
-  }, [riderLocation, driverLocation]);
+    // Fetch promotions from backend API
+    fetch('https://your-api-url/api/promotions')
+      .then(res => res.json())
+      .then(data => setPromotions(data))
+      .catch(err => console.error('Error fetching promotions:', err));
+  }, []);
 
-  const submitFeedback = async () => {
-    if (rating === 0) {
-      Alert.alert('Rating Required', 'Please rate the other user before submitting.');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await fetch('https://yourapi.com/api/rides/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // add auth token if needed
-        },
-        body: JSON.stringify({
-          ride_id: rideId,
-          user_type: userType, // "rider" or "driver"
-          rating,
-          feedback,
-          ride_completed: rideCompleted,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Thank You', 'Your feedback has been submitted.');
-        setModalVisible(false);
-        navigation.goBack(); // or to ride summary screen
-      } else {
-        Alert.alert('Error', data.message || 'Failed to submit feedback.');
-      }
-    } catch (error) {
-      Alert.alert('Error', 'An error occurred submitting feedback.');
-    } finally {
-      setLoading(false);
-    }
+  const handleProfileNavigation = () => {
+    router.push('/screens/Profile/ProfileScreen'); // Navigate to ProfileScreen
   };
 
-  return (
-    <View style={styles.container}>
-      {region ? (
-        <MapView style={styles.map} region={region} showsUserLocation={true}>
-          <Marker
-            coordinate={riderLocation}
-            title="Rider"
-            pinColor="blue"
-          />
-          <Marker
-            coordinate={driverLocation}
-            title="Driver"
-            pinColor="red"
-          />
-        </MapView>
-      ) : (
-        <Text>Loading Map...</Text>
-      )}
-
-      <View style={styles.bottomBar}>
-        <Text style={styles.paymentText}>Payment Method: {paymentMethod === 'cash' ? 'Cash' : 'In-App Credits'}</Text>
-
-        <TouchableOpacity
-          style={styles.endRideButton}
-          onPress={() => setModalVisible(true)}
-        >
-          <Text style={styles.endRideText}>End Ride</Text>
-        </TouchableOpacity>
+  if (!userInfo) {
+    // No user logged in yet
+    return (
+      <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5', justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: isDarkMode ? '#FFF' : '#000' }}>Please log in to view this page.</Text>
       </View>
+    );
+  }
 
-      <Modal
-        animationType="slide"
-        transparent
-        visible={modalVisible}
-        onRequestClose={() => !loading && setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Ride Feedback</Text>
+  const renderPromotionItem = ({ item }) => (
+    <View style={[styles.promotionItem, { backgroundColor: isDarkMode ? '#222' : '#FFF' }]}>
+      <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>{item.name}</Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Start Date: {item.startDate}</Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Time Remaining: {item.timeRemaining}</Text>
+      <Text style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}>{item.description}</Text>
+    </View>
+  );
 
-            <Text style={styles.label}>Rate the other user (1-5):</Text>
-            <Rating
-              type="star"
-              startingValue={rating}
-              imageSize={30}
-              onFinishRating={setRating}
-              style={{ paddingVertical: 10 }}
-            />
+  return (
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' }]}>
+      <TouchableOpacity style={styles.profileButton} onPress={handleProfileNavigation}>
+        <Ionicons name="person-circle" size={50} color={isDarkMode ? '#FFF' : '#000'} />
+      </TouchableOpacity>
 
-            <Text style={styles.label}>Feedback:</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Write your feedback here..."
-              multiline
-              numberOfLines={3}
-              value={feedback}
-              onChangeText={setFeedback}
-              editable={!loading}
-            />
+      <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>Ongoing Promotions</Text>
 
-            <View style={styles.checkboxContainer}>
-              <CheckBox
-                value={rideCompleted}
-                onValueChange={setRideCompleted}
-                disabled={loading}
-              />
-              <Text style={styles.checkboxLabel}>
-                Ride completed successfully
-              </Text>
-            </View>
+      <FlatList
+        data={promotions}
+        renderItem={renderPromotionItem}
+        keyExtractor={(item) => item.id.toString()}
+        style={styles.promotionsList}
+      />
 
-            {loading ? (
-              <ActivityIndicator size="large" color="#007BFF" />
-            ) : (
-              <View style={styles.modalButtons}>
-                <TouchableOpacity
-                  style={[styles.button, styles.cancelButton]}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Text style={styles.buttonText}>Cancel</Text>
-                </TouchableOpacity>
+      <Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
 
-                <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
-                  onPress={submitFeedback}
-                >
-                  <Text style={styles.buttonText}>Submit</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
+      <View style={[styles.pointsContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
+        <Text style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}>
+          Your Accumulated Points: {accumulatedPoints}
+        </Text>
+        <View style={styles.pointsOptions}>
+          <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+            Spend on Special Deals
+          </Text>
+          <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+            Convert to In-App Credits
+          </Text>
         </View>
-      </Modal>
+      </View>
     </View>
   );
 };
 
-export default RideInProgress;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  map: {
-    flex: 7,
-  },
-  bottomBar: {
-    flex: 1,
+    paddingTop: 20,
     paddingHorizontal: 20,
-    justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
+    paddingBottom: 40,
   },
-  paymentText: {
-    fontSize: 16,
-    marginBottom: 10,
+  profileButton: {
+    position: 'absolute',
+    top: 20,
+    right: 20,
+    zIndex: 10,
   },
-  endRideButton: {
-    backgroundColor: '#dc3545',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  endRideText: {
-    color: '#fff',
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    fontSize: 18,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 15,
+    marginBottom: 20,
     textAlign: 'center',
   },
-  label: {
-    fontSize: 14,
-    marginTop: 10,
+  promotionsList: {
+    marginBottom: 20,
   },
-  textInput: {
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 6,
-    padding: 10,
-    marginTop: 5,
-    minHeight: 60,
-    textAlignVertical: 'top',
+  promotionItem: {
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  checkboxLabel: {
-    marginLeft: 8,
-    fontSize: 14,
-  },
-  modalButtons: {
-    marginTop: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  button: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#6c757d',
-    marginRight: 10,
-  },
-  submitButton: {
-    backgroundColor: '#007bff',
-  },
-  buttonText: {
-    color: '#fff',
+  promotionName: {
+    fontSize: 18,
     fontWeight: 'bold',
   },
+  promotionText: {
+    fontSize: 14,
+    marginTop: 5,
+  },
+  promotionDescription: {
+    marginTop: 10,
+    fontSize: 14,
+    fontStyle: 'italic',
+  },
+  pointsContainer: {
+    padding: 20,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  pointsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  pointsOptions: {
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  pointsOption: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
+  },
 });
+
+export default RiderHomePage;
