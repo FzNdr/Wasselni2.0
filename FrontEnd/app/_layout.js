@@ -1,6 +1,6 @@
 // app/_layout.js
 import { Stack } from 'expo-router';
-import { AppProvider } from './context/AppContext';
+import { AppProvider } from './contexts/AppContext';
 
 export default function Layout() {
   return (

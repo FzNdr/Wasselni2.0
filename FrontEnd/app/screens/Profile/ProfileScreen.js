@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import { useContext } from 'react';
 import { Button, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AppContext } from '../../context/AppContext';
+import { AppContext } from '../../contexts/AppContext';
 
 const ProfileScreen = () => {
   const router = useRouter();

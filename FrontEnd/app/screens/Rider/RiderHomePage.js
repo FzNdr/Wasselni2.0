@@ -11,8 +11,8 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native';
-import RideStatusListener from './components/RideStatusListener'; // Adjust path if needed
-import { AppContext } from '../contexts/AppContext'; // Adjust path if needed
+import RideStatusListener from './components/RideStatusListenner';
+import { AppContext } from '../../contexts/AppContext';
 
 const RiderHomePage = () => {
   const router = useRouter();
