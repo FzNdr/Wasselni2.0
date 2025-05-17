@@ -33,7 +33,6 @@ class AuthController extends Controller
             'gov_id' => $fields['govId'],
             'role' => strtolower($fields['registrationType']),
             'password' => Hash::make($fields['password']),
-            'email' => $request->input('email', null),  // Optional email
         ]);
 
         if ($fields['registrationType'] === 'Driver') {

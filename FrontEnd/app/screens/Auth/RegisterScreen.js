@@ -6,12 +6,14 @@ import {
   Alert,
   Button,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
-  useColorScheme,
   View,
+  useColorScheme,
 } from 'react-native';
 import FormToggle from '../../../components/FormToggle';
 
@@ -34,17 +36,25 @@ const RegisterScreen = () => {
   const [totalSeats, setTotalSeats] = useState('');
   const [photo, setPhoto] = useState(null);
 
+  const theme = {
+    background: isDarkMode ? '#121212' : '#f5f5f5',
+    text: isDarkMode ? '#fff' : '#1c1c1c',
+    inputBg: isDarkMode ? '#1e1e1e' : '#e6e6e6',
+    placeholder: isDarkMode ? '#aaa' : '#666',
+    borderColor: isDarkMode ? '#444' : '#ccc',
+  };
+
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert("Permission required", "Please grant media access.");
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission Denied', 'We need access to your photos to continue.');
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      quality: 0.7,
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+      allowsEditing: true,
     });
 
     if (!result.canceled && result.assets?.length > 0) {
@@ -53,271 +63,155 @@ const RegisterScreen = () => {
   };
 
   const handleRegister = async () => {
-    if (!username || !firstName || !lastName || !phoneNumber || !govId || !password) {
-      Alert.alert('Missing Fields', 'Please fill in all the required fields.');
-      return;
+  if (!username || !firstName || !lastName || !phoneNumber || !govId || !password) {
+    Alert.alert('Missing Fields', 'Please complete all required fields.');
+    return;
+  }
+
+  if (
+    registrationType === 'Driver' &&
+    (!drivingLicense || !carPlate || !vehicleBrand || !vehicleType || !totalSeats || !photo)
+  ) {
+    Alert.alert('Missing Fields', 'Please complete all driver-specific fields including the photo.');
+    return;
+  }
+
+  try {
+    const payload = {
+      username,
+      first_name: firstName,
+      last_name: lastName,
+      phone: phoneNumber,
+      gov_id: govId,
+      password,
+      role: registrationType,
+      vehicle_type: vehicleType,
+      plate_number: carPlate,
+    };
+
+    const response = await fetch('http://192.168.0.104:8000/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const contentType = response.headers.get('Content-Type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Invalid response format. Expected JSON.');
     }
 
-    if (registrationType === 'Driver') {
-      if (!drivingLicense || !carPlate || !vehicleBrand || !vehicleType || !totalSeats || !photo) {
-        Alert.alert('Missing Fields', 'Please fill in all the required driver fields including photo.');
-        return;
-      }
-    }
+    const data = await response.json();
 
-    try {
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('first_name', firstName);
-      formData.append('last_name', lastName);
-      formData.append('phone', phoneNumber);
-      formData.append('gov_id', govId);
-      formData.append('password', password);
-      formData.append('role', registrationType);
-
+    if (response.ok) {
+      Alert.alert('Success', 'Registration successful!');
       if (registrationType === 'Driver') {
-        formData.append('driving_license', drivingLicense);
-        formData.append('car_plate', carPlate);
-        formData.append('vehicle_brand', vehicleBrand);
-        formData.append('vehicle_type', vehicleType);
-        formData.append('total_seats', totalSeats);
-        formData.append('photo', {
-          uri: photo.uri,
-          name: 'photo.jpg',
-          type: 'image/jpeg',
-        });
-      }
-
-      const response = await fetch('http://YOUR_LARAVEL_IP/api/register', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Success', 'Registration successful!');
-        router.push('/LoginScreen');
+        router.replace('/DriverHomePage');
       } else {
-        console.error(data);
-        Alert.alert('Registration Failed', data.message || 'Please check your input.');
+        router.replace('/RiderHomePage');
       }
-    } catch (error) {
-      console.error(error);
-      Alert.alert('Error', 'An error occurred while registering.');
+    } else {
+      Alert.alert('Registration Failed', data.message || 'Something went wrong.');
     }
-  };
-
-  const themeStyles = {
-    backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
-    textColor: isDarkMode ? '#FFFFFF' : '#1c1c1c',
-    inputBackground: isDarkMode ? '#1e1e1e' : '#eeeeee',
-    placeholderTextColor: isDarkMode ? '#aaa' : '#555',
-    formContainerColor: isDarkMode ? '#1a1a1a' : '#f0f0f0',
-  };
+  } catch (error) {
+    console.error(error);
+    Alert.alert('Error', 'Unable to complete registration.');
+  }
+};
 
   return (
-    <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
-      <FormToggle activeScreen="RegisterScreen" />
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: theme.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={80}
+    >
+      <ScrollView contentContainerStyle={{ padding: 16 }}>
+        <FormToggle activeScreen="RegisterScreen" />
+        <Text style={[styles.header, { color: theme.text }]}>Register</Text>
+        <Text style={{ color: theme.text }}>Select Registration Type:</Text>
 
-      <Text style={[styles.header, { color: themeStyles.textColor }]}>Register</Text>
-      <Text style={{ color: themeStyles.textColor }}>Select Registration Type:</Text>
+        <View style={[styles.pickerWrapper, { borderColor: theme.borderColor }]}>
+          <Picker
+            selectedValue={registrationType}
+            onValueChange={setRegistrationType}
+            style={{ color: theme.text }}
+            dropdownIconColor={theme.text}
+          >
+            <Picker.Item label="Rider" value="Rider" />
+            <Picker.Item label="Driver" value="Driver" />
+          </Picker>
+        </View>
 
-      {/* Picker wrapper borderColor fixed to static '#ccc' */}
-      <View style={[styles.pickerWrapper, { backgroundColor: themeStyles.inputBackground, borderColor: '#ccc' }]}>
-        <Picker
-          selectedValue={registrationType}
-          onValueChange={(itemValue) => setRegistrationType(itemValue)}
-          style={[styles.picker, { color: themeStyles.textColor }]}
-          dropdownIconColor={themeStyles.textColor}
-        >
-          <Picker.Item label="Rider" value="Rider" />
-          <Picker.Item label="Driver" value="Driver" />
-        </Picker>
-      </View>
+        <Text style={[styles.sectionHeader, { color: theme.text }]}>Personal Information</Text>
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Username" placeholderTextColor={theme.placeholder} value={username} onChangeText={setUsername} />
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="First Name" placeholderTextColor={theme.placeholder} value={firstName} onChangeText={setFirstName} />
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Last Name" placeholderTextColor={theme.placeholder} value={lastName} onChangeText={setLastName} />
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Phone Number" placeholderTextColor={theme.placeholder} value={phoneNumber} onChangeText={setPhoneNumber} />
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Government ID" placeholderTextColor={theme.placeholder} value={govId} onChangeText={setGovId} />
+        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Password" placeholderTextColor={theme.placeholder} value={password} onChangeText={setPassword} secureTextEntry />
 
-      <View style={[styles.formWrapper, { backgroundColor: themeStyles.formContainerColor }]}>
-        <ScrollView contentContainerStyle={styles.formContainer} style={styles.scrollView} showsVerticalScrollIndicator>
-          <Text style={[styles.sectionHeader, { color: themeStyles.textColor }]}>Personal Information</Text>
+        {registrationType === 'Driver' && (
+          <>
+            <Text style={[styles.sectionHeader, { color: theme.text }]}>Vehicle Information</Text>
+            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Driving License Number" placeholderTextColor={theme.placeholder} value={drivingLicense} onChangeText={setDrivingLicense} />
+            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Car Plate Number" placeholderTextColor={theme.placeholder} value={carPlate} onChangeText={setCarPlate} />
+            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Vehicle Brand" placeholderTextColor={theme.placeholder} value={vehicleBrand} onChangeText={setVehicleBrand} />
+            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Total Seats (excluding driver)" placeholderTextColor={theme.placeholder} keyboardType="numeric" value={totalSeats} onChangeText={setTotalSeats} />
 
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="Username"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={username}
-            onChangeText={setUsername}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="First Name"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="Last Name"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={lastName}
-            onChangeText={setLastName}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="Phone Number"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="Government ID"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={govId}
-            onChangeText={setGovId}
-          />
-          <TextInput
-            style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-            placeholder="Password"
-            placeholderTextColor={themeStyles.placeholderTextColor}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
+            <Text style={{ color: theme.text, marginTop: 10 }}>Vehicle Type</Text>
+            <View style={[styles.pickerWrapper, { borderColor: theme.borderColor }]}>
+              <Picker selectedValue={vehicleType} onValueChange={setVehicleType} style={{ color: theme.text }} dropdownIconColor={theme.text}>
+                <Picker.Item label="SUV" value="SUV" />
+                <Picker.Item label="Sedan" value="Sedan" />
+                <Picker.Item label="Van" value="Van" />
+              </Picker>
+            </View>
 
-          {registrationType === 'Driver' && (
-            <>
-              <Text style={[styles.sectionHeader, { color: themeStyles.textColor }]}>Vehicle Information</Text>
-
-              <TextInput
-                style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-                placeholder="Driving License Number"
-                placeholderTextColor={themeStyles.placeholderTextColor}
-                value={drivingLicense}
-                onChangeText={setDrivingLicense}
+            <Text style={{ color: theme.text, marginTop: 15 }}>
+              Upload a clear photo of yourself holding your Driving License and Government ID while standing in front of your car.
+            </Text>
+            <Button title="Choose Photo" onPress={pickImage} />
+            {photo && (
+              <Image
+                source={{ uri: photo.uri }}
+                style={{ width: 100, height: 100, marginTop: 10, borderRadius: 10 }}
               />
-              <TextInput
-                style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-                placeholder="Car Plate Number"
-                placeholderTextColor={themeStyles.placeholderTextColor}
-                value={carPlate}
-                onChangeText={setCarPlate}
-              />
-              <TextInput
-                style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-                placeholder="Vehicle Brand"
-                placeholderTextColor={themeStyles.placeholderTextColor}
-                value={vehicleBrand}
-                onChangeText={setVehicleBrand}
-              />
-              <TextInput
-                style={[styles.input, { backgroundColor: themeStyles.inputBackground, color: themeStyles.textColor }]}
-                placeholder="Total Seats (excluding driver)"
-                placeholderTextColor={themeStyles.placeholderTextColor}
-                value={totalSeats}
-                onChangeText={setTotalSeats}
-                keyboardType="numeric"
-              />
+            )}
+          </>
+        )}
 
-              <Text style={{ color: themeStyles.textColor, marginTop: 10 }}>Vehicle Type</Text>
-              <View
-                style={[
-                  styles.pickerWrapper,
-                  { backgroundColor: themeStyles.inputBackground, borderColor: themeStyles.textColor },
-                ]}
-              >
-                <Picker
-                  selectedValue={vehicleType}
-                  onValueChange={(itemValue) => setVehicleType(itemValue)}
-                  style={[styles.picker, { color: themeStyles.textColor }]}
-                  dropdownIconColor={themeStyles.textColor}
-                >
-                  <Picker.Item label="SUV" value="SUV" />
-                  <Picker.Item label="Sedan" value="Sedan" />
-                  <Picker.Item label="Van" value="Van" />
-                </Picker>
-              </View>
-
-              <Text style={{ color: themeStyles.textColor, marginTop: 15 }}>Upload Photo of you holding your Driving license and your Government iD standing infront of your car with the car plate number clear and visible</Text>
-              <Button title="Choose Photo" onPress={pickImage} />
-              {photo && (
-                <Image
-                  source={{ uri: photo.uri }}
-                  style={{ width: 100, height: 100, marginTop: 10, borderRadius: 8 }}
-                />
-              )}
-            </>
-          )}
-        </ScrollView>
-      </View>
-
-      <View style={styles.buttonContainer}>
-        <Button title="Register" onPress={handleRegister} />
-      </View>
-    </View>
+        {/* ✅ Register button at the bottom of scrollable area */}
+        <View style={{ marginTop: 30, marginBottom: 50 }}>
+          <Button title="Register" onPress={handleRegister} />
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
-      
 const styles = StyleSheet.create({
-  pickerWrapper: {
-    width: '100%',
-    borderWidth: 1,
-    borderRadius: 8,
-    marginVertical: 10,
-    borderColor: '#ccc', // Keep default border color here
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingTop: 40,
-    paddingHorizontal: 20,
-  },
   header: {
     fontSize: 24,
-    marginBottom: 10,
     fontWeight: 'bold',
+    marginBottom: 10,
   },
   sectionHeader: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     marginTop: 20,
     marginBottom: 10,
   },
-  input: {
-    width: '100%',
-    padding: 14,
-    marginVertical: 8,
+  pickerWrapper: {
     borderWidth: 1,
     borderRadius: 8,
-    borderColor: '#ccc',
-  },
-  picker: {
-    width: '100%',
     marginVertical: 10,
-    backgroundColor: 'transparent',
+    overflow: 'hidden',
   },
-  formWrapper: {
+  input: {
     width: '100%',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 10,
-    flex: 1,
-  },
-  formContainer: {
-    flexGrow: 1,
-    paddingBottom: 60,
-  },
-  scrollView: {
-    width: '100%',
-  },
-  buttonContainer: {
-    width: '100%',
-    marginVertical: 20,
+    padding: 12,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderRadius: 8,
   },
 });
 
