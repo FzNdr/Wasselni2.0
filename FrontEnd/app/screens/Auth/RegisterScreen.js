@@ -89,7 +89,7 @@ const RegisterScreen = () => {
       plate_number: carPlate,
     };
 
-    const response = await fetch('http://192.168.0.104:8000/api/register', {
+    const response = await fetch('http://localhost:8000/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
@@ -189,6 +189,62 @@ const RegisterScreen = () => {
 };
 
 const styles = StyleSheet.create({
+   container: {
+    flex: 1,
+    paddingTop: 40, // Adjusted for FormToggle height
+    paddingHorizontal: 20,
+  },
+  formToggleWrapper: {
+    alignItems: 'center',
+    marginTop: '10%',
+  },
+  formWrapper: {
+    marginBottom: 20,
+    borderRadius: 10,
+    padding: 10,
+  },
+  pickerWrapper: {
+    height: 50,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 15,
+    justifyContent: 'center',
+  },
+  picker: {
+    width: '100%',
+    marginVertical: 10,
+    backgroundColor: 'transparent',
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  input: {
+    height: 50,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  scrollView: {
+    marginBottom: 20,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  buttonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
   header: {
     fontSize: 24,
     fontWeight: 'bold',

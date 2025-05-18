@@ -52,4 +52,32 @@ class AuthController extends Controller
             'token' => $token,
         ], 201);
     }
+
+    public function login(Request $request)
+{
+    $fields = $request->validate([
+        'username' => 'required|string',
+        'password' => 'required|string',
+        'role' => 'required|in:rider,driver',
+    ]);
+
+    // Attempt to find the user by username and role
+    $user = User::where('username', $fields['username'])
+                ->where('role', $fields['role'])
+                ->first();
+
+    if (!$user || !Hash::check($fields['password'], $user->password)) {
+        return response()->json([
+            'message' => 'Invalid credentials'
+        ], 401);
+    }
+
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    return response()->json([
+        'user' => $user,
+        'token' => $token
+    ], 200);
+}
+
 }

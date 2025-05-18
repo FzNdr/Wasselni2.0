@@ -8,7 +8,7 @@ use App\Models\User;
 
 class PromotionController extends Controller
 {
-    ppublic function index(Request $request)
+    public function index(Request $request)
 {
     $userRole = $request->query('role', 'all'); // default to 'all' if no role specified
 

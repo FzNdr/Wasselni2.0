@@ -23,18 +23,43 @@ const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleLogin = () => {
-    if (username && password) {
-      // Navigate based on the selected login type
+ const handleLogin = async () => {
+  if (!username || !password) {
+    Alert.alert('Missing Fields', 'Please fill in all the required fields.');
+    return;
+  }
+
+  try {
+    const response = await fetch('http://localhost:8000/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        username,
+        password,
+        role: loginType,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      // Navigate based on the role
       if (loginType === 'Rider') {
-        router.push('/screens/Rider/RiderHomePage'); // For Rider
-      } else if (loginType === 'Driver') {
-        router.push('/screens/Driver/DriverHomePage'); // For Driver (Adjust path as needed)
+        router.push('/screens/Rider/RiderHomePage');
+      } else {
+        router.push('/screens/Driver/DriverHomePage');
       }
     } else {
-      Alert.alert('Missing Fields', 'Please fill in all the required fields.');
+      Alert.alert('Login Failed', data.message || 'Invalid credentials.');
     }
-  };
+  } catch (error) {
+    Alert.alert('Error', 'Failed to connect to the server.');
+    console.error(error);
+  }
+};
+
 
   const themeStyles = {
     backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
