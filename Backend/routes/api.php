@@ -68,4 +68,3 @@ use App\Http\Controllers\UserController;
 
 Route::get('/promotions', [PromotionController::class, 'index']);
 Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
-Route::post('/register', [AuthController::class, 'register']);

@@ -77,23 +77,52 @@ const RegisterScreen = () => {
   }
 
   try {
-    const payload = {
-      username,
-      first_name: firstName,
-      last_name: lastName,
-      phone: phoneNumber,
-      gov_id: govId,
-      password,
-      role: registrationType,
-      vehicle_type: vehicleType,
-      plate_number: carPlate,
-    };
+    let response;
+    if (registrationType === 'Driver') {
+      // Prepare multipart form data for Driver with photo upload
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('first_name', firstName);
+      formData.append('last_name', lastName);
+      formData.append('phone', phoneNumber);
+      formData.append('gov_id', govId);
+      formData.append('password', password);
+      formData.append('role', registrationType);
+      formData.append('driving_license', drivingLicense);
+      formData.append('plate_number', carPlate);
+      formData.append('vehicle_brand', vehicleBrand);
+      formData.append('vehicle_type', vehicleType);
+      formData.append('total_seats', Number(totalSeats));
 
-    const response = await fetch('http://localhost:8000/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+      formData.append('photo', {
+        uri: photo.uri,
+        name: 'photo.jpg',
+        type: 'image/jpeg',
+      });
+
+      response = await fetch('http://10.0.2.2:8000/api/register', {
+        method: 'POST',
+        body: formData,
+        // IMPORTANT: Do NOT set Content-Type header with FormData; browser/React Native sets it automatically
+      });
+    } else {
+      // Rider registration with JSON body
+      const payload = {
+        username,
+        first_name: firstName,
+        last_name: lastName,
+        phone: phoneNumber,
+        gov_id: govId,
+        password,
+        role: registrationType,
+      };
+
+      response = await fetch('http://10.0.2.2:8000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    }
 
     const contentType = response.headers.get('Content-Type');
     if (!contentType || !contentType.includes('application/json')) {

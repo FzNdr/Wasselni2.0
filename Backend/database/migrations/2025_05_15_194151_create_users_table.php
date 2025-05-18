@@ -13,24 +13,23 @@ class CreateUsersTable extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
+$table->string('username')->unique();
+$table->string('first_name');
+$table->string('last_name');
+$table->string('phone_number')->unique();
+$table->string('gov_id')->unique();
+$table->string('role'); // rider or driver
+$table->string('password');
 
-            $table->string('username')->unique();
-            $table->string('first_name');
-            $table->string('last_name');
-            $table->string('phone_number');
-            $table->string('gov_id');
-            $table->string('password');
+// Optional fields for drivers
+$table->string('driving_license')->nullable()->unique();
+$table->string('car_plate')->nullable()->unique();
+$table->string('vehicle_brand')->nullable();
+$table->string('vehicle_type')->nullable(); // SUV, Sedan, etc.
+$table->integer('total_seats')->nullable();
 
-            // Driver specific fields (nullable since not all users are drivers)
-            $table->string('driving_license')->nullable();
-            $table->string('car_plate')->nullable();
-            $table->string('vehicle_brand')->nullable();
-            $table->string('vehicle_type')->default('SUV')->nullable();
-            $table->integer('total_seats')->nullable();
+$table->timestamps();
 
-            $table->string('registration_type')->default('Rider'); // Rider or Driver
-
-            $table->timestamps();
         });
     }
 
