@@ -19,45 +19,46 @@ const LoginScreen = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const [loginType, setLoginType] = useState('Rider');
+  const [loginType, setLoginType] = useState('rider');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
  const handleLogin = async () => {
+  
   if (!username || !password) {
     Alert.alert('Missing Fields', 'Please fill in all the required fields.');
     return;
   }
 
-  try {
-    const response = await fetch('http://10.0.2.2:8000/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username,
-        password,
-        role: loginType,
-      }),
-    });
+ try {
+  console.log('Sending login request...', { username, password, role: loginType });
+  const response = await fetch('http://10.0.2.2:8000/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password, role: loginType.toLowerCase() }),
 
-    const data = await response.json();
+  });
+  
+  console.log('Response status:', response.status);
+  
+  const data = await response.json();
+  console.log('Response data:', data);
 
-    if (data.success) {
-      // Navigate based on the role
-      if (loginType === 'Rider') {
-        router.push('/screens/Rider/RiderHomePage');
-      } else {
-        router.push('/screens/Driver/DriverHomePage');
-      }
-    } else {
-      Alert.alert('Login Failed', data.message || 'Invalid credentials.');
-    }
-  } catch (error) {
-    Alert.alert('Error', 'Failed to connect to the server.');
-    console.error(error);
+  if (data.token && data.user) {
+  if (loginType.toLowerCase() === 'rider') {
+router.push('screens/Rider/RiderHomePage');
+
+  } else {
+    router.push('screens/Driver/DriverHomePage');
+
   }
+} else {
+  Alert.alert('Login Failed', data.message || 'Invalid credentials.');
+}
+} catch (error) {
+  Alert.alert('Error', 'Failed to connect to the server.');
+  console.error('Fetch error:', error);
+}
 };
 
 

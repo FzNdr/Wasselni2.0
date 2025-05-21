@@ -79,43 +79,42 @@ const RegisterScreen = () => {
   try {
     let response;
     if (registrationType === 'Driver') {
-      // Prepare multipart form data for Driver with photo upload
-      const formData = new FormData();
-      formData.append('username', username);
-      formData.append('first_name', firstName);
-      formData.append('last_name', lastName);
-      formData.append('phone', phoneNumber);
-      formData.append('gov_id', govId);
-      formData.append('password', password);
-      formData.append('role', registrationType);
-      formData.append('driving_license', drivingLicense);
-      formData.append('plate_number', carPlate);
-      formData.append('vehicle_brand', vehicleBrand);
-      formData.append('vehicle_type', vehicleType);
-      formData.append('total_seats', Number(totalSeats));
+      formData.append('registrationType', registrationType);
+formData.append('username', username);
+formData.append('firstName', firstName);
+formData.append('lastName', lastName);
+formData.append('phoneNumber', phoneNumber);
+formData.append('govId', govId);
+formData.append('password', password);
+formData.append('password_confirmation', password); // For password confirmation
 
-      formData.append('photo', {
-        uri: photo.uri,
-        name: 'photo.jpg',
-        type: 'image/jpeg',
-      });
+formData.append('drivingLicense', drivingLicense);
+formData.append('carPlate', carPlate);
+formData.append('vehicleBrand', vehicleBrand);
+formData.append('vehicleType', vehicleType);
+formData.append('totalSeats', Number(totalSeats));
+formData.append('photo', {
+  uri: photo.uri,
+  name: 'photo.jpg',
+  type: 'image/jpeg',
+});
+
 
       response = await fetch('http://10.0.2.2:8000/api/register', {
         method: 'POST',
         body: formData,
-        // IMPORTANT: Do NOT set Content-Type header with FormData; browser/React Native sets it automatically
       });
     } else {
-      // Rider registration with JSON body
       const payload = {
-        username,
-        first_name: firstName,
-        last_name: lastName,
-        phone: phoneNumber,
-        gov_id: govId,
-        password,
-        role: registrationType,
-      };
+  registrationType,
+  username,
+  firstName,
+  lastName,
+  phoneNumber,
+  govId,
+  password,
+  password_confirmation: password, // add this for confirmation
+};
 
       response = await fetch('http://10.0.2.2:8000/api/register', {
         method: 'POST',
@@ -133,19 +132,20 @@ const RegisterScreen = () => {
 
     if (response.ok) {
       Alert.alert('Success', 'Registration successful!');
-      if (registrationType === 'Driver') {
-        router.replace('/DriverHomePage');
+      if (registrationType === 'driver') {
+        router.replace('screens/Driver/DriverHomePage');
       } else {
-        router.replace('/RiderHomePage');
+        router.replace('screens/Rider/RiderHomePage');
       }
     } else {
       Alert.alert('Registration Failed', data.message || 'Something went wrong.');
     }
   } catch (error) {
     console.error(error);
-    Alert.alert('Error', 'Unable to complete registration.');
+    Alert.alert('Error', error.message || 'Unable to complete registration.');
   }
 };
+
 
   return (
     <KeyboardAvoidingView
@@ -218,7 +218,7 @@ const RegisterScreen = () => {
 };
 
 const styles = StyleSheet.create({
-   container: {
+  container: {
     flex: 1,
     paddingTop: 40, // Adjusted for FormToggle height
     paddingHorizontal: 20,
@@ -244,11 +244,6 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     backgroundColor: 'transparent',
   },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
   input: {
     height: 50,
     marginBottom: 15,
@@ -273,11 +268,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
   },
   sectionHeader: {
     fontSize: 18,
