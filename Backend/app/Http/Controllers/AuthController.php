@@ -4,42 +4,43 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\DriverApplication;
 
 class AuthController extends Controller
 {
-    public function register(Request $request)
+public function register(Request $request)
 {
     $fields = $request->validate([
-    'registrationType' => 'required|in:Rider,Driver',
-    'username' => 'required|string|unique:users,username',
-    'firstName' => 'required|string',
-    'lastName' => 'required|string',
-    'phoneNumber' => 'required|string|unique:users,phone_number',
-    'govId' => 'required|string|unique:users,gov_id',
-    'password' => 'required|string|confirmed',
-    // Driver-only fields
-    'drivingLicense' => 'required_if:registrationType,Driver|string|unique:users,driving_license',
-    'carPlate' => 'required_if:registrationType,Driver|string|unique:users,car_plate',
-    'vehicleBrand' => 'required_if:registrationType,Driver|string',
-    'vehicleType' => 'required_if:registrationType,Driver|in:SUV,Sedan,Truck,Van,Other',
-    'totalSeats' => 'required_if:registrationType,Driver|integer|min:1',
-]);
+        // ... existing validation rules ...
+        'photo' => 'required_if:registrationType,Driver|image|max:2048', // validate photo upload
+    ]);
 
-
+    // Create user first
     $user = User::create([
         'username' => $fields['username'],
         'first_name' => $fields['firstName'],
         'last_name' => $fields['lastName'],
         'phone_number' => $fields['phoneNumber'],
         'gov_id' => $fields['govId'],
-'role' => strtolower($fields['registrationType']),
+        'role' => strtolower($fields['registrationType']),
         'password' => Hash::make($fields['password']),
-        'driving_license' => $fields['drivingLicense'] ?? null,
-        'car_plate' => $fields['carPlate'] ?? null,
-        'vehicle_brand' => $fields['vehicleBrand'] ?? null,
-        'vehicle_type' => $fields['vehicleType'] ?? null,
-        'total_seats' => $fields['totalSeats'] ?? null,
     ]);
+
+    // Handle driver application if registrationType == Driver
+    if (strtolower($fields['registrationType']) === 'driver') {
+        // Store photo file
+        $photoPath = null;
+        if ($request->hasFile('photo')) {
+            $photoPath = $request->file('photo')->store('driver_photos', 'public');
+        }
+
+        DriverApplication::create([
+            'user_id' => $user->id,
+            'photo_path' => $photoPath,
+            'status' => 'Pending',
+            // other fields can be added if you want (driving_license, etc.) or store them separately
+        ]);
+    }
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -48,7 +49,6 @@ class AuthController extends Controller
         'token' => $token,
     ], 201);
 }
-
 
     public function login(Request $request) {
     try {

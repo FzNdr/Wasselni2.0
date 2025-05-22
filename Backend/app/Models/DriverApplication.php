@@ -10,13 +10,25 @@ class DriverApplication extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'photo_path',
-        'status',
-        'submitted_at',
-        'reviewed_at',
-        'reviewer_id',
-    ];
+    'user_id',
+    'username',
+    'firstName',
+    'lastName',
+    'phoneNumber',
+    'govId',
+    'password',
+    'drivingLicense',
+    'carPlate',
+    'vehicleBrand',
+    'vehicleType',
+    'totalSeats',
+    'photo_path',
+    'status',
+    'submitted_at',
+    'reviewed_at',
+    'reviewer_id',
+];
+
 
     public function user()
     {

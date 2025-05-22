@@ -44,6 +44,7 @@ const RegisterScreen = () => {
     borderColor: isDarkMode ? '#444' : '#ccc',
   };
 
+  // Ask for photo library permission and pick image
   const pickImage = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
@@ -62,90 +63,96 @@ const RegisterScreen = () => {
     }
   };
 
+  // Handle form submit with validation
   const handleRegister = async () => {
-  if (!username || !firstName || !lastName || !phoneNumber || !govId || !password) {
-    Alert.alert('Missing Fields', 'Please complete all required fields.');
-    return;
-  }
-
-  if (
-    registrationType === 'Driver' &&
-    (!drivingLicense || !carPlate || !vehicleBrand || !vehicleType || !totalSeats || !photo)
-  ) {
-    Alert.alert('Missing Fields', 'Please complete all driver-specific fields including the photo.');
-    return;
-  }
-
-  try {
-    let response;
-    if (registrationType === 'Driver') {
-      formData.append('registrationType', registrationType);
-formData.append('username', username);
-formData.append('firstName', firstName);
-formData.append('lastName', lastName);
-formData.append('phoneNumber', phoneNumber);
-formData.append('govId', govId);
-formData.append('password', password);
-formData.append('password_confirmation', password); // For password confirmation
-
-formData.append('drivingLicense', drivingLicense);
-formData.append('carPlate', carPlate);
-formData.append('vehicleBrand', vehicleBrand);
-formData.append('vehicleType', vehicleType);
-formData.append('totalSeats', Number(totalSeats));
-formData.append('photo', {
-  uri: photo.uri,
-  name: 'photo.jpg',
-  type: 'image/jpeg',
-});
-
-
-      response = await fetch('http://10.0.2.2:8000/api/register', {
-        method: 'POST',
-        body: formData,
-      });
-    } else {
-      const payload = {
-  registrationType,
-  username,
-  firstName,
-  lastName,
-  phoneNumber,
-  govId,
-  password,
-  password_confirmation: password, // add this for confirmation
-};
-
-      response = await fetch('http://10.0.2.2:8000/api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    
+    if (!username || !firstName || !lastName || !phoneNumber || !govId || !password) {
+      Alert.alert('Missing Fields', 'Please complete all required fields.');
+      return;
     }
 
-    const contentType = response.headers.get('Content-Type');
-    if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Invalid response format. Expected JSON.');
+    if (
+      registrationType === 'Driver' &&
+      (!drivingLicense || !carPlate || !vehicleBrand || !vehicleType || !totalSeats || !photo)
+    ) {
+      Alert.alert('Missing Fields', 'Please complete all driver-specific fields including the photo.');
+      return;
     }
 
-    const data = await response.json();
+    try {
+      let response;
+      if (registrationType === 'Driver') {
+        const formData = new FormData();
+        formData.append('registrationType', registrationType);
+        formData.append('username', username);
+        formData.append('firstName', firstName);
+        formData.append('lastName', lastName);
+        formData.append('phoneNumber', phoneNumber);
+        formData.append('govId', govId);
+        formData.append('password', password);
+        formData.append('password_confirmation', password); // Confirm password
 
-    if (response.ok) {
-      Alert.alert('Success', 'Registration successful!');
-      if (registrationType === 'driver') {
-        router.push('/Driver/DriverHomePage');
+        formData.append('drivingLicense', drivingLicense);
+        formData.append('carPlate', carPlate);
+        formData.append('vehicleBrand', vehicleBrand);
+        formData.append('vehicleType', vehicleType);
+        formData.append('totalSeats', Number(totalSeats));
+        formData.append('photo', {
+          uri: photo.uri,
+          name: 'photo.jpg',
+          type: 'image/jpeg',
+        });
+
+        response = await fetch('http://10.0.2.2:8000/api/register', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            // Note: Do NOT set Content-Type to multipart/form-data here; fetch will do it automatically
+          },
+        });
       } else {
-          router.push('/Rider/RiderHomePage');
-      }
-    } else {
-      Alert.alert('Registration Failed', data.message || 'Something went wrong.');
-    }
-  } catch (error) {
-    console.error(error);
-    Alert.alert('Error', error.message || 'Unable to complete registration.');
-  }
-};
+        // Rider registration payload
+        const payload = {
+          registrationType,
+          username,
+          firstName,
+          lastName,
+          phoneNumber,
+          govId,
+          password,
+          password_confirmation: password,
+        };
 
+        response = await fetch('http://10.0.2.2:8000/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const contentType = response.headers.get('Content-Type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Invalid response format. Expected JSON.');
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', 'Registration successful!');
+        // Redirect based on registration type (case insensitive check)
+        if (registrationType.toLowerCase() === 'driver') {
+          router.push('/Driver/DriverHomePage');
+        } else {
+          router.push('/Rider/RiderHomePage');
+        }
+      } else {
+        Alert.alert('Registration Failed', data.message || 'Something went wrong.');
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'Unable to complete registration.');
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -156,8 +163,8 @@ formData.append('photo', {
       <ScrollView contentContainerStyle={{ padding: 16 }}>
         <FormToggle activeScreen="RegisterScreen" />
         <Text style={[styles.header, { color: theme.text }]}>Register</Text>
-        <Text style={{ color: theme.text }}>Select Registration Type:</Text>
 
+        <Text style={{ color: theme.text }}>Select Registration Type:</Text>
         <View style={[styles.pickerWrapper, { borderColor: theme.borderColor }]}>
           <Picker
             selectedValue={registrationType}
@@ -171,31 +178,100 @@ formData.append('photo', {
         </View>
 
         <Text style={[styles.sectionHeader, { color: theme.text }]}>Personal Information</Text>
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Username" placeholderTextColor={theme.placeholder} value={username} onChangeText={setUsername} />
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="First Name" placeholderTextColor={theme.placeholder} value={firstName} onChangeText={setFirstName} />
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Last Name" placeholderTextColor={theme.placeholder} value={lastName} onChangeText={setLastName} />
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Phone Number" placeholderTextColor={theme.placeholder} value={phoneNumber} onChangeText={setPhoneNumber} />
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Government ID" placeholderTextColor={theme.placeholder} value={govId} onChangeText={setGovId} />
-        <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Password" placeholderTextColor={theme.placeholder} value={password} onChangeText={setPassword} secureTextEntry />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="Username"
+          placeholderTextColor={theme.placeholder}
+          value={username}
+          onChangeText={setUsername}
+          autoCapitalize="none"
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="First Name"
+          placeholderTextColor={theme.placeholder}
+          value={firstName}
+          onChangeText={setFirstName}
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="Last Name"
+          placeholderTextColor={theme.placeholder}
+          value={lastName}
+          onChangeText={setLastName}
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="Phone Number"
+          placeholderTextColor={theme.placeholder}
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          keyboardType="phone-pad"
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="Government ID"
+          placeholderTextColor={theme.placeholder}
+          value={govId}
+          onChangeText={setGovId}
+        />
+        <TextInput
+          style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+          placeholder="Password"
+          placeholderTextColor={theme.placeholder}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          autoCapitalize="none"
+        />
 
         {registrationType === 'Driver' && (
           <>
             <Text style={[styles.sectionHeader, { color: theme.text }]}>Vehicle Information</Text>
-            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Driving License Number" placeholderTextColor={theme.placeholder} value={drivingLicense} onChangeText={setDrivingLicense} />
-            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Car Plate Number" placeholderTextColor={theme.placeholder} value={carPlate} onChangeText={setCarPlate} />
-            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Vehicle Brand" placeholderTextColor={theme.placeholder} value={vehicleBrand} onChangeText={setVehicleBrand} />
-            <TextInput style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]} placeholder="Total Seats (excluding driver)" placeholderTextColor={theme.placeholder} keyboardType="numeric" value={totalSeats} onChangeText={setTotalSeats} />
-
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+              placeholder="Driving License Number"
+              placeholderTextColor={theme.placeholder}
+              value={drivingLicense}
+              onChangeText={setDrivingLicense}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+              placeholder="Car Plate Number"
+              placeholderTextColor={theme.placeholder}
+              value={carPlate}
+              onChangeText={setCarPlate}
+            />
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+              placeholder="Vehicle Brand"
+              placeholderTextColor={theme.placeholder}
+              value={vehicleBrand}
+              onChangeText={setVehicleBrand}
+            />
             <Text style={{ color: theme.text, marginTop: 10 }}>Vehicle Type</Text>
             <View style={[styles.pickerWrapper, { borderColor: theme.borderColor }]}>
-              <Picker selectedValue={vehicleType} onValueChange={setVehicleType} style={{ color: theme.text }} dropdownIconColor={theme.text}>
+              <Picker
+                selectedValue={vehicleType}
+                onValueChange={setVehicleType}
+                style={{ color: theme.text }}
+                dropdownIconColor={theme.text}
+              >
                 <Picker.Item label="SUV" value="SUV" />
                 <Picker.Item label="Sedan" value="Sedan" />
                 <Picker.Item label="Van" value="Van" />
               </Picker>
             </View>
+            <TextInput
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.borderColor }]}
+              placeholder="Total Seats (excluding driver)"
+              placeholderTextColor={theme.placeholder}
+              keyboardType="numeric"
+              value={totalSeats}
+              onChangeText={setTotalSeats}
+            />
 
-            <Text style={{ color: theme.text, marginTop: 15 }}>
+            <Text style={{ color: theme.text, marginTop: 15, marginBottom: 5 }}>
               Upload a clear photo of yourself holding your Driving License and Government ID while standing in front of your car.
             </Text>
             <Button title="Choose Photo" onPress={pickImage} />
@@ -208,7 +284,6 @@ formData.append('photo', {
           </>
         )}
 
-        {/* ✅ Register button at the bottom of scrollable area */}
         <View style={{ marginTop: 30, marginBottom: 50 }}>
           <Button title="Register" onPress={handleRegister} />
         </View>
@@ -218,67 +293,12 @@ formData.append('photo', {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 40, // Adjusted for FormToggle height
-    paddingHorizontal: 20,
-  },
-  formToggleWrapper: {
-    alignItems: 'center',
-    marginTop: '10%',
-  },
-  formWrapper: {
-    marginBottom: 20,
-    borderRadius: 10,
-    padding: 10,
-  },
   pickerWrapper: {
     height: 50,
     borderWidth: 1,
     borderRadius: 8,
-    marginBottom: 15,
+    marginVertical: 10,
     justifyContent: 'center',
-  },
-  picker: {
-    width: '100%',
-    marginVertical: 10,
-    backgroundColor: 'transparent',
-  },
-  input: {
-    height: 50,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  scrollView: {
-    marginBottom: 20,
-  },
-  header: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  button: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 10,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  pickerWrapper: {
-    borderWidth: 1,
-    borderRadius: 8,
-    marginVertical: 10,
     overflow: 'hidden',
   },
   input: {
@@ -287,6 +307,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     borderWidth: 1,
     borderRadius: 8,
+  },
+  header: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 20,
+    marginBottom: 10,
   },
 });
 

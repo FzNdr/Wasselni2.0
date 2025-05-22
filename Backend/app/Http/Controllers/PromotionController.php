@@ -2,30 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Promotion;
-use App\Models\User;
+use Illuminate\Http\Request;
 
 class PromotionController extends Controller
 {
-    public function index(Request $request)
+  public function index(Request $request)
 {
-    $userRole = $request->query('role', 'all'); // default to 'all' if no role specified
+    $role = $request->query('role');  // e.g. 'driver' or 'rider'
+    $now = now();
 
-    $promotions = Promotion::where('start_date', '<=', now())
-        ->where('end_date', '>=', now())
-        ->where(function($query) use ($userRole) {
-            $query->where('target_role', 'all')
-                  ->orWhere('target_role', $userRole);
-        })
-        ->get(['id', 'name', 'start_date', 'description', 'end_date']);
+    $query = Promotion::query();
 
-    // Calculate time_remaining for each promotion
-    $promotions->transform(function ($promo) {
-        $diff = now()->diff($promo->end_date);
-        $promo->time_remaining = $diff->format('%d days %h hours');
-        return $promo;
-    });
+    if ($role) {
+        $query->where('target_role', $role);
+    }
+
+    // Only active promotions
+    $query->where('start_date', '<=', $now)
+          ->where('end_date', '>=', $now);
+
+    $promotions = $query->get();
 
     return response()->json($promotions);
 }

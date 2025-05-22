@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState, useEffect, useContext } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button,
   FlatList,
@@ -9,114 +9,152 @@ import {
   TouchableOpacity,
   useColorScheme,
   View,
-  ActivityIndicator,
 } from 'react-native';
-import RideStatusListener from './components/RideStatusListenner';
-import { AppContext } from '../contexts/AppContext';
 
 const RiderHomePage = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const { userInfo } = useContext(AppContext);
-  const userId = userInfo?.id;
-  const userRole = userInfo?.role || 'rider';
-
   const [promotions, setPromotions] = useState([]);
-  const [credits, setCredits] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [accumulatedPoints, setAccumulatedPoints] = useState(250);
 
   useEffect(() => {
-    if (!userId) return;
+  const fetchPromotions = async () => {
+    try {
+      const response = await fetch('http://10.0.2.2:8000/api/promotions');
+      const data = await response.json();
 
-    const fetchData = async () => {
-      try {
-        // Fetch promotions filtered by role
-        const promoResponse = await fetch(`http://localhost/api/promotions?role=${userRole}`);
-        const promoData = await promoResponse.json();
+      const now = new Date();
 
-        // Fetch user credits
-        const creditsResponse = await fetch(`http://localhost/api/users/${userId}/credits`);
-        const creditsData = await creditsResponse.json();
+      // Filter to rider promotions active right now
+      const activeRiderPromos = data.filter(promo => {
+        const startDate = new Date(promo.start_date);
+        const endDate = new Date(promo.end_date);
+        return (
+          promo.target_role === 'rider' &&
+          startDate <= now &&
+          now <= endDate
+        );
+      });
 
-        setPromotions(promoData);
-        setCredits(creditsData.credits);
-      } catch (error) {
-        console.error('Error fetching promotions or credits:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      // Map with time remaining
+      const processedPromos = activeRiderPromos.map(promo => {
+        const endDate = new Date(promo.end_date);
+        const diffMs = endDate - now;
+        const timeRemaining =
+          diffMs <= 0
+            ? 'Expired'
+            : `${Math.floor(diffMs / 3600000)}h ${Math.floor(
+                (diffMs % 3600000) / 60000
+              )}m`;
 
-    fetchData();
-  }, [userId, userRole]);
+        return {
+          id: promo.id.toString(),
+          title: promo.title,
+          description: promo.description || 'No description provided',
+          startDate: new Date(promo.start_date),
+          endDate,
+          timeRemaining,
+        };
+      });
+
+      setPromotions(processedPromos);
+    } catch (error) {
+      console.error('Failed to fetch promotions:', error);
+    }
+  };
+
+  fetchPromotions();
+}, []);
+
 
   const handleProfileNavigation = () => {
-    router.push('/Profile/ProfileScreen');
+    router.push('Profile/ProfileScreen');
   };
 
   const renderPromotionItem = ({ item }) => (
-    <View style={[styles.promotionItem, { backgroundColor: isDarkMode ? '#222' : '#FFF' }]}>
-      <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>{item.name}</Text>
-      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Start Date: {item.start_date}</Text>
-      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>Time Remaining: {item.time_remaining}</Text>
-      <Text style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}>{item.description}</Text>
+    <View
+      style={[
+        styles.promotionItem,
+        { backgroundColor: isDarkMode ? '#222' : '#FFF' },
+      ]}
+    >
+      <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>
+        {item.title}
+      </Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
+        Start Date: {item.startDate.toLocaleString()}
+      </Text>
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
+        Time Remaining: {item.timeRemaining}
+      </Text>
+      <Text
+        style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}
+      >
+        {item.description}
+      </Text>
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' }]}>
-        <ActivityIndicator size="large" color={isDarkMode ? '#FFF' : '#000'} />
-      </View>
-    );
-  }
-
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' }]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' },
+      ]}
+    >
       <TouchableOpacity style={styles.profileButton} onPress={handleProfileNavigation}>
         <Ionicons name="person-circle" size={50} color={isDarkMode ? '#FFF' : '#000'} />
       </TouchableOpacity>
 
-      <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>Ongoing Promotions</Text>
+      <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>
+        Ongoing Promotions
+      </Text>
 
       <FlatList
         data={promotions}
         renderItem={renderPromotionItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item.id}
         style={styles.promotionsList}
-        ListEmptyComponent={<Text style={{ color: isDarkMode ? '#AAA' : '#555', textAlign: 'center', marginTop: 20 }}>No promotions available right now.</Text>}
+        ListEmptyComponent={
+          <Text style={{ color: isDarkMode ? '#AAA' : '#555', textAlign: 'center', marginTop: 20 }}>
+            No promotions available right now.
+          </Text>
+        }
       />
 
-      <Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
-
-      <View style={[styles.creditsContainer, { backgroundColor: isDarkMode ? '#333' : '#fff' }]}>
-        <Text style={[styles.creditsText, { color: isDarkMode ? '#FFF' : '#000' }]}>Your Credits: {credits ?? 0}</Text>
+      <View style={{ marginVertical: 10 }}>
+        <Button title="Start Your Journey" onPress={() => router.push('/Rider/RiderMap')} />
       </View>
 
-      <RideStatusListener userId={userId} />
+      <View
+        style={[
+          styles.pointsContainer,
+          { backgroundColor: isDarkMode ? '#333' : '#fff' },
+        ]}
+      >
+        <Text style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}>
+          Your Accumulated Points: {accumulatedPoints}
+        </Text>
+        <View style={styles.pointsOptions}>
+          <TouchableOpacity>
+            <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+              Spend on Special Deals
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+              Convert to In-App Credits
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 20, paddingHorizontal: 20, paddingBottom: 40 },
-  profileButton: { position: 'absolute', top: 20, right: 20, zIndex: 10 },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  promotionsList: { marginBottom: 20 },
-  promotionItem: {
-    padding: 15,
-    marginBottom: 10,
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    shadowOffset: { width: 0, height: 3 },
-  },
-  promotionName: { fontSize: 18, fontWeight: 'bold' },
-  promotionText: { fontSize: 14, marginTop: 5 },
-  promotionDescription: { marginTop: 10, fontSize: 14, fontStyle: 'italic' },
 
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 20,
@@ -160,15 +198,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontStyle: 'italic',
   },
-  creditsContainer: {
+  pointsContainer: {
     padding: 20,
     borderRadius: 10,
     marginTop: 20,
     alignItems: 'center',
   },
-  creditsText: {
+  pointsText: {
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  pointsOptions: {
+    marginTop: 15,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '100%',
+  },
+  pointsOption: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textDecorationLine: 'underline',
   },
 });
 

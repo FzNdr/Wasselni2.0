@@ -1,7 +1,15 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, TouchableOpacity, useColorScheme, View } from 'react-native';
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native';
 
 const DriverHomePage = () => {
   const router = useRouter();
@@ -9,66 +17,60 @@ const DriverHomePage = () => {
   const isDarkMode = colorScheme === 'dark';
 
   const [promotions, setPromotions] = useState([]);
-  const [accumulatedPoints, setAccumulatedPoints] = useState(250); // Example points
+  const [accumulatedPoints, setAccumulatedPoints] = useState(250);
 
   useEffect(() => {
-    const driverPromotions = [
-      {
-        id: '1',
-        title: 'Boost Zone: Airport Area',
-        description:
-          'Earn 2.5x fares for trips starting at the Airport between 4 PM - 8 PM.',
-        startDate: new Date('2025-05-15T16:00:00'),
-        durationHours: 4,
-      },
-      {
-        id: '2',
-        title: '10-Ride Completion Bonus',
-        description:
-          'Complete 10 rides today and earn an additional $20 bonus.',
-        startDate: new Date('2025-05-15T00:00:00'),
-        durationHours: 24,
-      },
-      {
-        id: '3',
-        title: 'Fuel Discount Partner Offer',
-        description:
-          'Get 10% off at partnered gas stations for the next 48 hours.',
-        startDate: new Date('2025-05-14T08:00:00'),
-        durationHours: 48,
-      },
-      {
-        id: '4',
-        title: 'Evening Rush Challenge',
-        description:
-          'Earn $5 extra per ride during 6 PM – 9 PM today.',
-        startDate: new Date('2025-05-15T18:00:00'),
-        durationHours: 3,
-      },
-    ];
+  const fetchPromotions = async () => {
+    try {
+      const response = await fetch('http://10.0.2.2:8000/api/promotions');
+      const data = await response.json();
 
-    const now = new Date();
-    const promotionsWithTimeRemaining = driverPromotions.map((promo) => {
-      const endDate = new Date(promo.startDate);
-      endDate.setHours(endDate.getHours() + promo.durationHours);
-      const diffMs = endDate - now;
-      const remaining =
-        diffMs <= 0
-          ? 'Expired'
-          : `${Math.floor(diffMs / 3600000)}h ${Math.floor(
-            (diffMs % 3600000) / 60000
-          )}m`;
-      return {
-        ...promo,
-        timeRemaining: remaining,
-      };
-    });
+      const now = new Date();
 
-    setPromotions(promotionsWithTimeRemaining);
-  }, []);
+      // Filter to driver promotions active right now
+      const activedriverPromos = data.filter(promo => {
+        const startDate = new Date(promo.start_date);
+        const endDate = new Date(promo.end_date);
+        return (
+          promo.target_role === 'driver' &&
+          startDate <= now &&
+          now <= endDate
+        );
+      });
+
+      // Map with time remaining
+      const processedPromos = activedriverPromos.map(promo => {
+        const endDate = new Date(promo.end_date);
+        const diffMs = endDate - now;
+        const timeRemaining =
+          diffMs <= 0
+            ? 'Expired'
+            : `${Math.floor(diffMs / 3600000)}h ${Math.floor(
+                (diffMs % 3600000) / 60000
+              )}m`;
+
+        return {
+          id: promo.id.toString(),
+          title: promo.title,
+          description: promo.description || 'No description provided',
+          startDate: new Date(promo.start_date),
+          endDate,
+          timeRemaining,
+        };
+      });
+
+      setPromotions(processedPromos);
+    } catch (error) {
+      console.error('Failed to fetch promotions:', error);
+    }
+  };
+
+  fetchPromotions();
+}, []);
+
 
   const handleProfileNavigation = () => {
-    router.push('/screens/Profile/ProfileScreen');
+    router.push('Profile/ProfileScreen');
   };
 
   const renderPromotionItem = ({ item }) => (
@@ -78,35 +80,17 @@ const DriverHomePage = () => {
         { backgroundColor: isDarkMode ? '#222' : '#FFF' },
       ]}
     >
-      <Text
-        style={[
-          styles.promotionName,
-          { color: isDarkMode ? '#FFF' : '#000' },
-        ]}
-      >
+      <Text style={[styles.promotionName, { color: isDarkMode ? '#FFF' : '#000' }]}>
         {item.title}
       </Text>
-      <Text
-        style={[
-          styles.promotionText,
-          { color: isDarkMode ? '#AAA' : '#555' },
-        ]}
-      >
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
         Start Date: {item.startDate.toLocaleString()}
       </Text>
-      <Text
-        style={[
-          styles.promotionText,
-          { color: isDarkMode ? '#AAA' : '#555' },
-        ]}
-      >
+      <Text style={[styles.promotionText, { color: isDarkMode ? '#AAA' : '#555' }]}>
         Time Remaining: {item.timeRemaining}
       </Text>
       <Text
-        style={[
-          styles.promotionDescription,
-          { color: isDarkMode ? '#CCC' : '#333' },
-        ]}
+        style={[styles.promotionDescription, { color: isDarkMode ? '#CCC' : '#333' }]}
       >
         {item.description}
       </Text>
@@ -120,15 +104,8 @@ const DriverHomePage = () => {
         { backgroundColor: isDarkMode ? '#121212' : '#F5F5F5' },
       ]}
     >
-      <TouchableOpacity
-        style={styles.profileButton}
-        onPress={handleProfileNavigation}
-      >
-        <Ionicons
-          name="person-circle"
-          size={50}
-          color={isDarkMode ? '#FFF' : '#000'}
-        />
+      <TouchableOpacity style={styles.profileButton} onPress={handleProfileNavigation}>
+        <Ionicons name="person-circle" size={50} color={isDarkMode ? '#FFF' : '#000'} />
       </TouchableOpacity>
 
       <Text style={[styles.header, { color: isDarkMode ? '#FFF' : '#000' }]}>
@@ -140,40 +117,37 @@ const DriverHomePage = () => {
         renderItem={renderPromotionItem}
         keyExtractor={(item) => item.id}
         style={styles.promotionsList}
+        ListEmptyComponent={
+          <Text style={{ color: isDarkMode ? '#AAA' : '#555', textAlign: 'center', marginTop: 20 }}>
+            No promotions available right now.
+          </Text>
+        }
       />
-      <View>  
-              <Button title="Start Your Journey" onPress={() => router.push('/screens/Rider/RiderMap')} />
-      </View>
-      <View
 
+      <View style={{ marginVertical: 10 }}>
+        <Button title="Start Your Journey" onPress={() => router.push('/Driver/DriverMap')} />
+      </View>
+
+      <View
         style={[
           styles.pointsContainer,
           { backgroundColor: isDarkMode ? '#333' : '#fff' },
         ]}
       >
-
-        <Text
-          style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}
-        >
+        <Text style={[styles.pointsText, { color: isDarkMode ? '#FFF' : '#000' }]}>
           Your Accumulated Points: {accumulatedPoints}
         </Text>
         <View style={styles.pointsOptions}>
-          <Text
-            style={[
-              styles.pointsOption,
-              { color: isDarkMode ? '#1E90FF' : '#007AFF' },
-            ]}
-          >
-            Spend on Special Deals
-          </Text>
-          <Text
-            style={[
-              styles.pointsOption,
-              { color: isDarkMode ? '#1E90FF' : '#007AFF' },
-            ]}
-          >
-            Convert to In-App Credits
-          </Text>
+          <TouchableOpacity>
+            <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+              Spend on Special Deals
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity>
+            <Text style={[styles.pointsOption, { color: isDarkMode ? '#1E90FF' : '#007AFF' }]}>
+              Convert to In-App Credits
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

@@ -9,11 +9,11 @@ const ProfileScreen = () => {
 
   const handleLogout = () => {
     setUserRole(null);
-    router.push('/screens/Auth/LoginScreen');
+    router.push('/Auth/LoginScreen');
   };
 
   const handleRidesHistoryPress = () => {
-    router.push('/screens/RidesHistoryScreen'); // adjust if your route is different
+    router.push('Profile/RideHistoryScreen'); // adjust if your route is different
   };
 
   const renderUserDetails = () => {

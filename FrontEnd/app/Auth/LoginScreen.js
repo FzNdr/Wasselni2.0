@@ -45,12 +45,14 @@ const LoginScreen = () => {
       console.log('Response data:', data);
 
       if (data.token && data.user) {
-        if (loginType.toLowerCase() === 'rider') {
-router.push('Rider/RiderHomePage');
+        if (loginType.toLowerCase() === 'driver') {
+           router.push('/Driver/DriverHomePage');
+
 
         } else {
-router.push('Driver/DriverHomePage');
+          router.push('/Rider/RiderHomePage');
 
+         
 
         }
       } else {
