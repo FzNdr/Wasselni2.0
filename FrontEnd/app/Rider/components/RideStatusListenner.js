@@ -1,7 +1,7 @@
 // app/screens/Rider/components/RideStatusListener.js
 
 import { useEffect, useContext } from 'react';
-import { AppContext } from '../../../contexts/AppContext';
+import { AppContext } from '../../contexts/AppContext';
 
 const RideStatusListenner = ({ userId }) => {
   const { rideStatus, setRideStatus } = useContext(AppContext);

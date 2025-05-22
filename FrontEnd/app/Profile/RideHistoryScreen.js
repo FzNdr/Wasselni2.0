@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
-import { AppContext } from '../../contexts/AppContext';
+import { AppContext } from '../contexts/AppContext';
 
 const RidesHistoryScreen = () => {
   const { userInfo, userRole } = useContext(AppContext);

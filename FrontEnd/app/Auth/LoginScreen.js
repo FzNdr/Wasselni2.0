@@ -12,7 +12,7 @@ import {
   View,
   useColorScheme
 } from 'react-native';
-import FormToggle from '../../../components/FormToggle';
+import FormToggle from '../../components/FormToggle';
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -23,43 +23,44 @@ const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
- const handleLogin = async () => {
-  
-  if (!username || !password) {
-    Alert.alert('Missing Fields', 'Please fill in all the required fields.');
-    return;
-  }
+  const handleLogin = async () => {
 
- try {
-  console.log('Sending login request...', { username, password, role: loginType });
-  const response = await fetch('http://10.0.2.2:8000/api/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ username, password, role: loginType.toLowerCase() }),
+    if (!username || !password) {
+      Alert.alert('Missing Fields', 'Please fill in all the required fields.');
+      return;
+    }
 
-  });
-  
-  console.log('Response status:', response.status);
-  
-  const data = await response.json();
-  console.log('Response data:', data);
+    try {
+      console.log('Sending login request...', { username, password, role: loginType });
+      const response = await fetch('http://10.0.2.2:8000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role: loginType.toLowerCase() }),
 
-  if (data.token && data.user) {
-  if (loginType.toLowerCase() === 'rider') {
-router.push('screens/Rider/RiderHomePage');
+      });
 
-  } else {
-    router.push('screens/Driver/DriverHomePage');
+      console.log('Response status:', response.status);
 
-  }
-} else {
-  Alert.alert('Login Failed', data.message || 'Invalid credentials.');
-}
-} catch (error) {
-  Alert.alert('Error', 'Failed to connect to the server.');
-  console.error('Fetch error:', error);
-}
-};
+      const data = await response.json();
+      console.log('Response data:', data);
+
+      if (data.token && data.user) {
+        if (loginType.toLowerCase() === 'rider') {
+router.push('Rider/RiderHomePage');
+
+        } else {
+router.push('Driver/DriverHomePage');
+
+
+        }
+      } else {
+        Alert.alert('Login Failed', data.message || 'Invalid credentials.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to connect to the server.');
+      console.error('Fetch error:', error);
+    }
+  };
 
 
   const themeStyles = {

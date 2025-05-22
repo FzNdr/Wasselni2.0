@@ -15,7 +15,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native';
-import FormToggle from '../../../components/FormToggle';
+import FormToggle from '../../components/FormToggle';
 
 const RegisterScreen = () => {
   const router = useRouter();
@@ -133,9 +133,9 @@ formData.append('photo', {
     if (response.ok) {
       Alert.alert('Success', 'Registration successful!');
       if (registrationType === 'driver') {
-        router.replace('screens/Driver/DriverHomePage');
+        router.push('/Driver/DriverHomePage');
       } else {
-        router.replace('screens/Rider/RiderHomePage');
+          router.push('/Rider/RiderHomePage');
       }
     } else {
       Alert.alert('Registration Failed', data.message || 'Something went wrong.');

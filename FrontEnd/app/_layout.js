@@ -5,18 +5,22 @@ export default function Layout() {
   return (
     <AppProvider>
       <Stack
-        initialRouteName="screens/Auth/RegisterScreen"
+        initialRouteName="Auth/RegisterScreen" 
         screenOptions={{
           headerShown: false,
         }}
       >
-        <Stack.Screen name="screens/Auth/LoginScreen" />
-        <Stack.Screen name="screens/Auth/RegisterScreen" />
-        <Stack.Screen name="screens/Driver/DriverHomePage" />
-        <Stack.Screen name="screens/Rider/RiderHomePage" />
-        <Stack.Screen name="screens/Profile/ProfileScreen" />
-        <Stack.Screen name="screens/Driver/Driver-RideInProgress" />
-        <Stack.Screen name="screens/Rider/Rider-RideInProgress" />
+         <Stack.Screen name="Auth/LoginScreen" />
+      <Stack.Screen name="Auth/RegisterScreen" />
+      <Stack.Screen name="Driver/DriverMap" />
+      <Stack.Screen name="Driver/DriverHomePage"/>
+      <Stack.Screen name="Rider/RiderMap" />
+      <Stack.Screen name="Rider/RiderHomePage"/>
+<Stack.Screen name="Profile/ProfileScreen"/>
+<Stack.Screen name="Profile/RideHistoryScreen"/>
+
+
+
       </Stack>
     </AppProvider>
   );

@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import RideStatusListener from './components/RideStatusListenner';
-import { AppContext } from '../../contexts/AppContext';
+import { AppContext } from '../contexts/AppContext';
 
 const RiderHomePage = () => {
   const router = useRouter();
@@ -53,7 +53,7 @@ const RiderHomePage = () => {
   }, [userId, userRole]);
 
   const handleProfileNavigation = () => {
-    router.push('/screens/Profile/ProfileScreen');
+    router.push('/Profile/ProfileScreen');
   };
 
   const renderPromotionItem = ({ item }) => (

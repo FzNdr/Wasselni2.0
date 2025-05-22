@@ -1,5 +1,5 @@
 import { Text } from 'react-native';
-import RegisterScreen from './screens/Auth/RegisterScreen';
+import RegisterScreen from './Auth/RegisterScreen';
 
 const Index = () => {
   return (

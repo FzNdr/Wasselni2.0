@@ -167,7 +167,6 @@ const RiderRideInProgress = ({ route, navigation }) => {
   );
 };
 
-export default RiderRideInProgress;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -216,3 +215,4 @@ const styles = StyleSheet.create({
   submitButton: { backgroundColor: '#007bff' },
   buttonText: { color: '#fff', fontWeight: 'bold' },
 });
+export default RiderRideInProgress;
