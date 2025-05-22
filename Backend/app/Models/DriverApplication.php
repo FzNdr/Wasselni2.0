@@ -2,34 +2,23 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DriverApplication extends Model
 {
-    use HasFactory;
+    protected $table = 'driver_applications';
 
     protected $fillable = [
-    'user_id',
-    'username',
-    'firstName',
-    'lastName',
-    'phoneNumber',
-    'govId',
-    'password',
-    'drivingLicense',
-    'carPlate',
-    'vehicleBrand',
-    'vehicleType',
-    'totalSeats',
-    'photo_path',
-    'status',
-    'submitted_at',
-    'reviewed_at',
-    'reviewer_id',
-];
+        'user_id',
+        'driving_license',
+        'car_plate',
+        'vehicle_brand',
+        'vehicle_type',
+        'total_seats',
+        'photo_path',
+    ];
 
-
+    // Relationship back to User
     public function user()
     {
         return $this->belongsTo(User::class);

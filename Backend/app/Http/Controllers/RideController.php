@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\WebSocketClient;
 use App\Models\Ride;
@@ -16,6 +15,14 @@ class RideController extends Controller
         $this->wsClient = $wsClient;
     }
 
+    // List all rides (e.g., for admin dashboard)
+    public function index()
+    {
+        $rides = Ride::with('rider', 'driver')->orderByDesc('created_at')->get();
+        return view('rides.index', compact('rides'));
+    }
+
+    // Update ride status and notify via WebSocket
     public function updateRideStatus(Request $request, $rideId)
     {
         $validated = $request->validate([
@@ -39,19 +46,5 @@ class RideController extends Controller
         return response()->json([
             'message' => 'Ride status updated and WebSocket notification sent.',
         ]);
-    }
-}
-namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use App\Models\Ride;
-use App\Models\User;
-
-class RideController extends Controller
-{
-    public function index()
-    {
-        $rides = Ride::with('rider', 'driver')->orderByDesc('created_at')->get();
-        return view('rides.index', compact('rides'));
     }
 }

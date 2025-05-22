@@ -10,20 +10,15 @@ class CreateDriverApplicationsTable extends Migration
      * Run the migrations.
      */
     public function up()
-    {
-        Schema::create('driver_applications', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->string('photo_path');
-            $table->enum('status', ['Pending', 'Approved', 'Denied'])->default('Pending');
-            $table->timestamp('submitted_at')->useCurrent();
-            $table->timestamp('reviewed_at')->nullable();
-            $table->unsignedBigInteger('reviewer_id')->nullable();
-
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('reviewer_id')->references('id')->on('users')->nullOnDelete();
-        });
-    }
+{
+    Schema::create('driver_applications', function (Blueprint $table) {
+        $table->id();
+        $table->string('photo_path')->nullable();
+        $table->string('status')->default('pending');
+        $table->timestamp('submitted_at')->nullable();
+        $table->timestamps(); // 👈 this adds created_at and updated_at
+    });
+}
 
     /**
      * Reverse the migrations.

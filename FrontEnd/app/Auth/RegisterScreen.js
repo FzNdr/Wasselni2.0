@@ -82,34 +82,32 @@ const RegisterScreen = () => {
     try {
       let response;
       if (registrationType === 'Driver') {
-        const formData = new FormData();
-        formData.append('registrationType', registrationType);
-        formData.append('username', username);
-        formData.append('firstName', firstName);
-        formData.append('lastName', lastName);
-        formData.append('phoneNumber', phoneNumber);
-        formData.append('govId', govId);
-        formData.append('password', password);
-        formData.append('password_confirmation', password); // Confirm password
+       const formData = new FormData();
+formData.append('username', username);
+formData.append('firstName', firstName);
+formData.append('lastName', lastName);
+formData.append('phoneNumber', phoneNumber);
+formData.append('govId', govId);
+formData.append('password', password);
+formData.append('password_confirmation', password); // for confirmed
+formData.append('drivingLicense', drivingLicense);
+formData.append('carPlate', carPlate);
+formData.append('vehicleBrand', vehicleBrand);
+formData.append('vehicleType', vehicleType);
+formData.append('totalSeats', totalSeats.toString());
+formData.append('photo', {
+  uri: photo.uri,
+  type: 'image/jpeg',
+  name: 'photo.jpg'
+});
 
-        formData.append('drivingLicense', drivingLicense);
-        formData.append('carPlate', carPlate);
-        formData.append('vehicleBrand', vehicleBrand);
-        formData.append('vehicleType', vehicleType);
-        formData.append('totalSeats', Number(totalSeats));
-        formData.append('photo', {
-          uri: photo.uri,
-          name: 'photo.jpg',
-          type: 'image/jpeg',
-        });
-
-        response = await fetch('http://10.0.2.2:8000/api/register', {
-          method: 'POST',
-          body: formData,
-          headers: {
-            // Note: Do NOT set Content-Type to multipart/form-data here; fetch will do it automatically
-          },
-        });
+response = await fetch('http://10.0.2.2:8000/api/register-driver', {
+  method: 'POST',
+  headers: {
+    Accept: 'application/json', // this is important!
+  },
+  body: formData,
+});
       } else {
         // Rider registration payload
         const payload = {
@@ -136,12 +134,13 @@ const RegisterScreen = () => {
       }
 
       const data = await response.json();
+console.log('Response data:', data);
 
       if (response.ok) {
         Alert.alert('Success', 'Registration successful!');
         // Redirect based on registration type (case insensitive check)
         if (registrationType.toLowerCase() === 'driver') {
-          router.push('/Driver/DriverHomePage');
+          router.push('/Auth/DriverApplicationStatus');
         } else {
           router.push('/Rider/RiderHomePage');
         }

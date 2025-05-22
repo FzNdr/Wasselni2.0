@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RideController;
 use App\Http\Controllers\LocationController;
@@ -12,39 +13,45 @@ use App\Http\Controllers\DriverLocationController;
 use App\Http\Controllers\RiderLocationController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\DriverRegistrationController;
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::get('/promotions', [PromotionController::class, 'index']);
+Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
 
-// Protected routes with Sanctum auth middleware
-Route::middleware('auth:sanctum')->group(function () {
+
     // User info & auth
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/user/credits', function () {
-        return response()->json(['credits' => auth()->user()->credits]);
-    });
+    Route::get('/user/credits', fn() => response()->json(['credits' => auth()->user()->credits]));
 
-    // Ride related
-    Route::post('/request-ride', [RideController::class, 'request']);
+    // Rides
     Route::get('/rides', [RideController::class, 'index']);
     Route::post('/rides', [RideController::class, 'store']);
+    Route::post('/request-ride', [RideController::class, 'updateRideStatus']);
+
+    // Location
     Route::post('/update-location', [LocationController::class, 'update']);
 
-    // Payment
+    // Payments
     Route::post('/payment/cash', [PaymentController::class, 'payWithCash']);
     Route::post('/payment/credits', [PaymentController::class, 'payWithCredits']);
 
-    // Rider profile
+    // Rider Profile
     Route::get('/rider/profile', [RiderController::class, 'profile']);
     Route::post('/rider/profile', [RiderController::class, 'updateProfile']);
 
-    // Rider Location
+    // Rider Locations
     Route::post('/rider/location', [RiderLocationController::class, 'updateLocation']);
-    Route::post('/rider-location/update', [RiderLocationController::class, 'updateLocation']); // optional alias
-    Route::post('/rider-locations', [RiderLocationController::class, 'updateLocation']); // alias for compatibility
     Route::get('/rider/locations', [RiderLocationController::class, 'index']);
+
+    // Driver Locations
+    Route::post('/driver-locations', [DriverLocationController::class, 'updateLocation']);
+    Route::get('/driver-locations', [DriverLocationController::class, 'index']);
+    Route::get('/driver-locations/{id}', [DriverLocationController::class, 'show']);
+    Route::delete('/driver-locations/{id}', [DriverLocationController::class, 'destroy']);
 
     // Ride Requests
     Route::get('/ride-requests', [RideRequestController::class, 'index']);
@@ -70,13 +77,4 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/drivers/nearby-riders', [DriverLocationController::class, 'nearbyRiders']);
     Route::post('/nearby-drivers', [DriverLocationController::class, 'nearbyDrivers']);
 
-    // Driver Location
-    Route::post('/driver-locations', [DriverLocationController::class, 'updateLocation']); // use this one for create/update
-    Route::get('/driver-locations', [DriverLocationController::class, 'index']);
-    Route::get('/driver-locations/{id}', [DriverLocationController::class, 'show']);
-    Route::delete('/driver-locations/{id}', [DriverLocationController::class, 'destroy']);
-});
-
-// Public or no auth required
-Route::get('/promotions', [PromotionController::class, 'index']);
-Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
+Route::post('/register-driver', [DriverRegistrationController::class, 'register']);
