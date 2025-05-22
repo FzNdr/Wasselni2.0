@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="dashboard">
+    <div class="top-container">
+      <div class="box">
+        <h3>Performance Metrics</h3>
+        <a href="stats.html" class="btn">Monthly</a>
+        <a href="drivermetrics.html" class="btn">Driver Metrics</a>
+        <a href="ridermetrics.html" class="btn">Rider Metrics</a>
+      </div>
+      <div class="box">
+        <h3>Promotion Management</h3>
+        <div class="promotion-buttons">
+          <a href="addpromo.html">Add Promotion</a>
+          <a href="updatepromo.html">Update Promotion</a>
+          <a href="deletepromo.html">Delete Promotion</a>
+        </div>
+      </div>
+      <div class="box">
+        <h3>User Support</h3>
+        <a href="DriverSupport.html" class="btn">Driver Applications</a>
+        <a href="UserSupport.html" class="btn">User Support</a>
+      </div>
+    </div>
+
+    <div class="bottom-container">
+      <div class="promotions-table-container">
+        <h3>Current Promotions</h3>
+        <table id="promotions-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Title</th>
+              <th>Start</th>
+              <th>End</th>
+            </tr>
+          </thead>
+          <tbody id="promotions-body">
+            <!-- Filled by fetch_promotions.php -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    fetch('fetch_promotions.php')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('promotions-body');
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${row.id}</td>
+            <td>${row.title}</td>
+            <td>${row.start_date}</td>
+            <td>${row.end_date}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      });
+  </script>
+</body>
+</html>

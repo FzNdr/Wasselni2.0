@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rider Metrics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    #rider-results table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    #rider-results th, #rider-results td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    #rider-results th {
+      background-color: #2196F3;
+      color: white;
+    }
+    #rider-search {
+      width: 300px;
+      padding: 8px;
+      margin-right: 8px;
+    }
+    .btn {
+      padding: 8px 12px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Rider Metrics</h2>
+    <input type="text" id="rider-search" placeholder="Enter Username" />
+    <button class="btn" onclick="searchRider()">Search</button>
+
+    <div id="rider-results" style="margin-top: 1rem;"></div>
+
+    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+  </div>
+
+  <script>
+    async function searchRider() {
+      const username = document.getElementById('rider-search').value.trim();
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+
+      const resultsDiv = document.getElementById('rider-results');
+      resultsDiv.innerHTML = 'Loading...';
+
+      try {
+        const res = await fetch(`fetch_rider_metrics.php?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          resultsDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
+          return;
+        }
+
+        let html = `<h3>Rider: ${data.rider.username} (ID: ${data.rider.id})</h3>`;
+        html += `<p><strong>Total Rides:</strong> ${data.total_rides}</p>`;
+        html += `<p><strong>Current Credits:</strong> $${parseFloat(data.credits).toFixed(2)}</p>`;
+
+        if (data.rides.length === 0) {
+          html += '<p>No rides found for this rider.</p>';
+        } else {
+          html += '<table><thead><tr><th>Ride ID</th><th>Driver</th><th>Payment Method</th><th>Amount ($)</th></tr></thead><tbody>';
+          data.rides.forEach(ride => {
+            html += `<tr>
+              <td>${ride.ride_id}</td>
+              <td>${ride.driver_username || 'N/A'}</td>
+              <td>${ride.payment_method || 'N/A'}</td>
+              <td>${ride.amount ? parseFloat(ride.amount).toFixed(2) : '0.00'}</td>
+            </tr>`;
+          });
+          html += '</tbody></table>';
+        }
+
+        resultsDiv.innerHTML = html;
+      } catch {
+        resultsDiv.innerHTML = '<p style="color:red;">Failed to fetch rider data.</p>';
+      }
+    }
+  </script>
+</body>
+</html>

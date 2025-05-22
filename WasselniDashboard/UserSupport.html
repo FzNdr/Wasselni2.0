@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Support</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .low-rating {
+      background-color: #ffcccc;
+      font-weight: bold;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h2>User Support - Feedback Overview</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>User Name</th>
+        <th>Phone</th>
+        <th>Role</th>
+        <th>Rating</th>
+        <th>Feedback</th>
+      </tr>
+    </thead>
+    <tbody id="feedback-body">
+      <!-- JS fills data -->
+    </tbody>
+  </table>
+
+  <script>
+    fetch('fetch_feedback.php')
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById('feedback-body');
+        data.forEach(row => {
+          const tr = document.createElement('tr');
+          if (parseFloat(row.rating) < 1.5) {
+            tr.classList.add('low-rating');
+          }
+          tr.innerHTML = `
+            <td>${row.name}</td>
+            <td>${row.phone}</td>
+            <td>${row.role}</td>
+            <td>${row.rating}</td>
+            <td>${row.comment}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      })
+      .catch(err => {
+        const tbody = document.getElementById('feedback-body');
+        tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load feedback.</td></tr>';
+        console.error('Error fetching feedback:', err);
+      });
+  </script>
+
+  <div style="display: flex; justify-content: center; margin-top: 2rem;">
+    <a href="dashboard.html" class="btn">Back to Dashboard</a>
+  </div>
+</body>
+</html>

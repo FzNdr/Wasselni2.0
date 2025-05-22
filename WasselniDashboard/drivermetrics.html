@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Driver Metrics</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .dashboard {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #f9f9f9;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2, h3 {
+      color: #333;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: center;
+    }
+    th {
+      background-color: #2196F3;
+      color: white;
+    }
+    #search-username {
+      width: 300px;
+      padding: 8px;
+      margin-right: 8px;
+    }
+    .btn {
+      padding: 8px 12px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .btn:hover {
+      background-color: #0b7dda;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard">
+    <h2>Driver Metrics</h2>
+
+    <input type="text" id="search-username" placeholder="Enter Username" />
+    <button class="btn" onclick="searchDriver()">Search</button>
+
+    <div id="driver-results" style="margin-top: 1rem;"></div>
+
+    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+  </div>
+
+  <script>
+    async function searchDriver() {
+      const username = document.getElementById('search-username').value.trim();
+      if (!username) {
+        alert('Please enter a username');
+        return;
+      }
+
+      const resultsDiv = document.getElementById('driver-results');
+      resultsDiv.innerHTML = 'Loading...';
+
+      try {
+        const res = await fetch(`fetch_driver_metrics.php?username=${encodeURIComponent(username)}`);
+        const data = await res.json();
+
+        if (data.error) {
+          resultsDiv.innerHTML = `<p style="color:red;">${data.error}</p>`;
+          return;
+        }
+
+        let html = `<h3>Driver: ${data.driver.username} (ID: ${data.driver.id})</h3>`;
+        html += `<p><strong>Total Rides:</strong> ${data.total_rides}</p>`;
+        html += `<p><strong>Current Credits:</strong> ${parseFloat(data.credits).toFixed(2)}</p>`;
+
+        if (data.rides.length === 0) {
+          html += '<p>No rides found for this driver.</p>';
+        } else {
+          html += '<table><thead><tr><th>Ride ID</th><th>Rider</th><th>Payment Method</th><th>Amount ($)</th></tr></thead><tbody>';
+          data.rides.forEach(ride => {
+            html += `<tr>
+              <td>${ride.ride_id}</td>
+              <td>${ride.rider_username}</td>
+              <td>${ride.payment_method}</td>
+              <td>${parseFloat(ride.amount).toFixed(2)}</td>
+            </tr>`;
+          });
+          html += '</tbody></table>';
+        }
+
+        resultsDiv.innerHTML = html;
+      } catch {
+        resultsDiv.innerHTML = '<p style="color:red;">Failed to fetch driver data.</p>';
+      }
+    }
+  </script>
+</body>
+</html>
