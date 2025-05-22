@@ -8,13 +8,13 @@ const FormToggle = ({ activeScreen }) => {
   return (
     <View style={[styles.toggleContainer, { backgroundColor: isDarkMode ? '#222' : '#eee' }]}>
       <TouchableOpacity
-        onPress={() => router.push('./Auth/LoginScreen')}
+        onPress={() => router.push('/Auth/LoginScreen')}
         style={[styles.toggleButton, activeScreen === 'LoginScreen' && styles.activeButton]}
       >
         <Text style={[styles.toggleText, activeScreen === 'LoginScreen' && styles.activeText]}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => router.push('./Auth/RegisterScreen')}
+        onPress={() => router.push('/Auth/RegisterScreen')}
         style={[styles.toggleButton, activeScreen === 'RegisterScreen' && styles.activeButton]}
       >
         <Text style={[styles.toggleText, activeScreen === 'RegisterScreen' && styles.activeText]}>Register</Text>

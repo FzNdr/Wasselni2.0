@@ -2,39 +2,14 @@ import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const RiderMap = () => {
   const [region, setRegion] = useState(null);
   const [pickupAddress, setPickupAddress] = useState('');
   const [dropoffAddress, setDropoffAddress] = useState('');
   const [dropoffLocation, setDropoffLocation] = useState(null);
   const [drivers, setDrivers] = useState([]);
-
-  const mockDrivers = [
-    {
-      id: '1',
-      name: 'John Doe',
-      carBrand: 'Toyota Corolla',
-      availableSeats: 3,
-      pricePerKm: 5,
-      phoneNumber: '123-456-7890',
-      rewardPoints: 50,
-      latitude: 37.78825,
-      longitude: -122.4324,
-    },
-    {
-      id: '2',
-      name: 'Jane Smith',
-      carBrand: 'Honda Civic',
-      availableSeats: 2,
-      pricePerKm: 6,
-      phoneNumber: '987-654-3210',
-      rewardPoints: 60,
-      latitude: 37.78925,
-      longitude: -122.4334,
-    },
-  ];
+  const [riderCoords, setRiderCoords] = useState(null);
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -52,17 +27,89 @@ const RiderMap = () => {
         longitudeDelta: 0.01,
       };
       setRegion(coords);
+      setRiderCoords(userLocation.coords);
 
       const address = await Location.reverseGeocodeAsync(userLocation.coords);
       if (address && address.length > 0) {
         const formatted = formatAddress(address[0]);
         setPickupAddress(formatted || 'Unknown Location');
       }
+
+      await updateRiderLocation(userLocation.coords);
+      await fetchNearbyDrivers(userLocation.coords);
     };
 
     fetchLocation();
-    setDrivers(mockDrivers);
   }, []);
+
+  const updateRiderLocation = async ({ latitude, longitude }) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const phone_number = await AsyncStorage.getItem('userPhone');
+
+    await fetch('http://10.0.2.2:8000/api/rider-locations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ latitude, longitude, phone_number }),
+    });
+  } catch (error) {
+    console.error('Error updating rider location:', error);
+  }
+};
+
+
+  const fetchNearbyDrivers = async ({ latitude, longitude }) => {
+  try {
+
+    const token = await AsyncStorage.getItem('userToken');
+const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`, 
+  },
+});
+
+
+    const text = await response.text();
+
+    try {
+      const data = JSON.parse(text);
+
+      const nearby = data.filter((driver) => {
+        const distance = getDistanceFromLatLonInKm(
+          latitude,
+          longitude,
+          parseFloat(driver.latitude),
+          parseFloat(driver.longitude)
+        );
+        return distance <= 2;
+      });
+
+      setDrivers(nearby);
+    } catch (jsonError) {
+      console.error('Failed to parse driver response as JSON:', text);
+    }
+  } catch (error) {
+    console.error('Error fetching drivers:', error.message);
+  }
+};
+
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const toRad = (value) => (value * Math.PI) / 180;
+    const R = 6371; // Earth radius in KM
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
 
   const formatAddress = (address) => {
     if (!address) return '';
@@ -78,16 +125,11 @@ const RiderMap = () => {
 
   const handleMapPress = async (e) => {
     const { latitude, longitude } = e.nativeEvent.coordinate;
-
-    // Set drop-off coordinates
     setDropoffLocation({ latitude, longitude });
 
-    // Reverse geocode to get address (optional, not used for validation anymore)
     const addressList = await Location.reverseGeocodeAsync({ latitude, longitude });
-
     if (addressList.length > 0) {
-      const address = addressList[0];
-      const formatted = formatAddress(address);
+      const formatted = formatAddress(addressList[0]);
       setDropoffAddress(formatted || 'Unknown Location');
     }
   };
@@ -116,7 +158,6 @@ const RiderMap = () => {
         showsUserLocation={true}
         onPress={handleMapPress}
       >
-        {/* Dropoff Pin */}
         {dropoffLocation && (
           <Marker
             coordinate={dropoffLocation}
@@ -126,16 +167,16 @@ const RiderMap = () => {
           />
         )}
 
-        {/* Mock driver pins */}
         {drivers.map((driver) => (
           <Marker
             key={driver.id}
             coordinate={{
-              latitude: driver.latitude,
-              longitude: driver.longitude,
+              latitude: parseFloat(driver.latitude),
+              longitude: parseFloat(driver.longitude),
             }}
             title={driver.name}
-            description={`Car: ${driver.carBrand}, Seats: ${driver.availableSeats}`}
+            description={`Car: ${driver.car_brand}, Seats: ${driver.available_seats}`}
+            pinColor="blue"
           />
         ))}
       </MapView>
@@ -144,19 +185,19 @@ const RiderMap = () => {
         <Text style={styles.locationText}>📍 Pickup: {pickupAddress}</Text>
         <Text style={styles.locationText}>🎯 Drop-off: {dropoffAddress || 'Tap on the map to select.'}</Text>
 
-        <Text style={styles.tableHeader}>Nearby Drivers</Text>
+        <Text style={styles.tableHeader}>Nearby Drivers (within 2KM)</Text>
         <FlatList
           data={drivers}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.tableRow}>
               <View style={styles.driverInfo}>
                 <Text>Name: {item.name}</Text>
-                <Text>Car: {item.carBrand}</Text>
-                <Text>Seats: {item.availableSeats}</Text>
-                <Text>Price: ${item.pricePerKm}/km</Text>
-                <Text>Phone: {item.phoneNumber}</Text>
-                <Text>Points: {item.rewardPoints}</Text>
+                <Text>Car: {item.car_brand}</Text>
+                <Text>Seats: {item.available_seats}</Text>
+                <Text>Price: ${item.price_per_km}/km</Text>
+                <Text>Phone: {item.phone_number}</Text>
+                <Text>Points: {item.reward_points}</Text>
               </View>
               <TouchableOpacity
                 style={styles.requestButton}
@@ -173,12 +214,10 @@ const RiderMap = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   map: {
     flex: 2,
-    marginTop:'7%',
+    marginTop: '7%',
     margin: '2%',
     borderRadius: 15,
     overflow: 'hidden',
@@ -202,9 +241,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  driverInfo: {
-    flex: 3,
-  },
+  driverInfo: { flex: 3 },
   requestButton: {
     flex: 1,
     backgroundColor: '#007BFF',
@@ -213,14 +250,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  locationText: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  locationText: { fontSize: 14, marginBottom: 5 },
 });
 
 export default RiderMap;

@@ -19,7 +19,6 @@ class CreateDriverApplicationsTable extends Migration
             $table->timestamp('submitted_at')->useCurrent();
             $table->timestamp('reviewed_at')->nullable();
             $table->unsignedBigInteger('reviewer_id')->nullable();
-            $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('reviewer_id')->references('id')->on('users')->nullOnDelete();

@@ -1,41 +1,68 @@
+import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 const DriverMap = () => {
-  const [location, setLocation] = useState(null);
+  const [region, setRegion] = useState(null);
   const [riders, setRiders] = useState([]);
-
-  // Mock data for riders
-  const mockRiders = [
-    {
-      id: '1',
-      name: 'Alice Johnson',
-      phoneNumber: '123-456-7890',
-      latitude: 37.78825,
-      longitude: -122.4324,
-    },
-    {
-      id: '2',
-      name: 'Bob Williams',
-      phoneNumber: '987-654-3210',
-      latitude: 37.78925,
-      longitude: -122.4334,
-    },
-  ];
+  const [driverCoords, setDriverCoords] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching the driver's location
-    setLocation({
-      latitude: 35.520678,
-      longitude:33.818437 ,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    });
+    const fetchLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Location permission is required.');
+        return;
+      }
 
-    // Simulate fetching riders' data
-    setRiders(mockRiders);
+      const userLocation = await Location.getCurrentPositionAsync({});
+      const coords = {
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      };
+      setRegion(coords);
+      setDriverCoords(userLocation.coords);
+
+      // Update driver location in DB
+      await updateDriverLocation(userLocation.coords);
+
+      // Fetch nearby riders
+      await fetchNearbyRiders(userLocation.coords);
+    };
+
+    fetchLocation();
   }, []);
+
+  const updateDriverLocation = async ({ latitude, longitude }) => {
+    try {
+      await fetch('http://10.0.2.2:8000/api/driver-locations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          latitude,
+          longitude,
+          phone_number: '987-654-3210', // Replace with actual driver phone from auth
+        }),
+      });
+    } catch (error) {
+      console.error('Error updating driver location:', error);
+    }
+  };
+
+  const fetchNearbyRiders = async ({ latitude, longitude }) => {
+    try {
+      const response = await fetch('http://10.0.2.2:8000/api/rider-locations');
+      const data = await response.json();
+      setRiders(data);
+    } catch (error) {
+      console.error('Error fetching riders:', error);
+    }
+  };
 
   const handleOfferRide = (rider) => {
     Alert.alert(
@@ -50,36 +77,35 @@ const DriverMap = () => {
 
   return (
     <View style={styles.container}>
-      {/* Map Section */}
       <MapView
         style={styles.map}
-        region={location}
+        region={region}
         showsUserLocation={true}
       >
         {riders.map((rider) => (
           <Marker
             key={rider.id}
             coordinate={{
-              latitude: rider.latitude,
-              longitude: rider.longitude,
+              latitude: parseFloat(rider.latitude),
+              longitude: parseFloat(rider.longitude),
             }}
             title={rider.name}
-            description={`Phone: ${rider.phoneNumber}`}
+            description={`Phone: ${rider.phone_number}`}
+            pinColor="red"
           />
         ))}
       </MapView>
 
-      {/* Table Section */}
       <View style={styles.tableContainer}>
         <Text style={styles.tableHeader}>Nearby Riders</Text>
         <FlatList
           data={riders}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.tableRow}>
               <View style={styles.riderInfo}>
                 <Text style={styles.tableCell}>Name: {item.name}</Text>
-                <Text style={styles.tableCell}>Phone: {item.phoneNumber}</Text>
+                <Text style={styles.tableCell}>Phone: {item.phone_number}</Text>
               </View>
               <TouchableOpacity
                 style={styles.offerButton}
@@ -96,12 +122,10 @@ const DriverMap = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   map: {
     flex: 2,
-    marginTop:'5%',
+    marginTop: '5%',
     margin: '2%',
     borderRadius: 15,
     overflow: 'hidden',
@@ -110,6 +134,8 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 10,
     backgroundColor: '#fff',
+    margin: '5%',
+    borderRadius: 15,
   },
   tableHeader: {
     fontSize: 18,
