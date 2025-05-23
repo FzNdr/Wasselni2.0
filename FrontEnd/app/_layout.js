@@ -11,7 +11,6 @@ export default function Layout() {
         }}
       >
         <Stack.Screen name="Auth/LoginScreen" />
-        <Stack.Screen name="Auth/DriverApplicationStatus" />
         <Stack.Screen name="Auth/RegisterScreen" />
         <Stack.Screen name="Driver/DriverMap" />
         <Stack.Screen name="Driver/DriverHomePage" />

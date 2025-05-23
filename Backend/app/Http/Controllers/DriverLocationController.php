@@ -22,27 +22,30 @@ class DriverLocationController extends Controller
         );
 
         return response()->json([
-            'message' => 'Driver location updated',
+            'message' => 'Rider location updated',
             'location' => $location
         ]);
     }
 
-    public function store(Request $request)
-    {
-        \Log::info('Request Data:', $request->all()); // Log incoming data
+  public function store(Request $request)
+{
+    \Log::info('Request Data:', ['data' => $request->all()]);
 
-        $validated = $request->validate([
-            'latitude' => 'required|numeric',
-            'longitude' => 'required|numeric',
-            'phone_number' => 'required|string',
-        ]);
+    $validated = $request->validate([
+        'user_id' => 'required|exists:users,id',
+        'latitude' => 'required|numeric|between:-90,90',
+        'longitude' => 'required|numeric|between:-180,180',
+    ]);
 
-        $driverLocation = new DriverLocation();
-        $driverLocation->latitude = $validated['latitude'];
-        $driverLocation->longitude = $validated['longitude'];
-        $driverLocation->phone_number = $validated['phone_number'];
-        $driverLocation->save();
+    $riderLocation = DriverLocation::updateOrCreate(
+        ['user_id' => $validated['user_id']],
+        [
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude']
+        ]
+    );
 
-        return response()->json(['success' => true, 'message' => 'Location saved']);
-    }
+    return response()->json(['success' => true, 'message' => 'Location saved', 'location' => $driverlocation]);
+}
+
 }

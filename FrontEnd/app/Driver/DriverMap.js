@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const DriverMap = () => {
   const [region, setRegion] = useState(null);
@@ -26,10 +27,7 @@ const DriverMap = () => {
       setRegion(coords);
       setDriverCoords(userLocation.coords);
 
-      // Update driver location in DB
       await updateDriverLocation(userLocation.coords);
-
-      // Fetch nearby riders
       await fetchNearbyRiders(userLocation.coords);
     };
 
@@ -38,15 +36,19 @@ const DriverMap = () => {
 
   const updateDriverLocation = async ({ latitude, longitude }) => {
     try {
+      const token = await AsyncStorage.getItem('userToken');
+      const phone_number = await AsyncStorage.getItem('userPhone'); // get from storage
+
       await fetch('http://10.0.2.2:8000/api/driver-locations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           latitude,
           longitude,
-          phone_number: '987-654-3210', // Replace with actual driver phone from auth
+          phone_number,
         }),
       });
     } catch (error) {
@@ -58,10 +60,34 @@ const DriverMap = () => {
     try {
       const response = await fetch('http://10.0.2.2:8000/api/rider-locations');
       const data = await response.json();
-      setRiders(data);
+
+      const nearby = data.filter((rider) => {
+        const distance = getDistanceFromLatLonInKm(
+          latitude,
+          longitude,
+          parseFloat(rider.latitude),
+          parseFloat(rider.longitude)
+        );
+        return distance <= 2;
+      });
+
+      setRiders(nearby);
     } catch (error) {
       console.error('Error fetching riders:', error);
     }
+  };
+
+  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
+    const toRad = (value) => (value * Math.PI) / 180;
+    const R = 6371;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
   const handleOfferRide = (rider) => {
@@ -77,35 +103,37 @@ const DriverMap = () => {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={region}
-        showsUserLocation={true}
-      >
-        {riders.map((rider) => (
-          <Marker
-            key={rider.id}
-            coordinate={{
-              latitude: parseFloat(rider.latitude),
-              longitude: parseFloat(rider.longitude),
-            }}
-            title={rider.name}
-            description={`Phone: ${rider.phone_number}`}
-            pinColor="red"
-          />
-        ))}
-      </MapView>
+      {region && (
+        <MapView
+          style={styles.map}
+          region={region}
+          showsUserLocation={true}
+        >
+          {riders.map((rider) => (
+            <Marker
+              key={rider.id}
+              coordinate={{
+                latitude: parseFloat(rider.latitude),
+                longitude: parseFloat(rider.longitude),
+              }}
+              title={rider.name}
+              description={`Pickup location`}
+              pinColor="purple"
+            />
+          ))}
+        </MapView>
+      )}
 
       <View style={styles.tableContainer}>
-        <Text style={styles.tableHeader}>Nearby Riders</Text>
+        <Text style={styles.tableHeader}>Nearby Riders (within 2KM)</Text>
         <FlatList
           data={riders}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <View style={styles.tableRow}>
               <View style={styles.riderInfo}>
-                <Text style={styles.tableCell}>Name: {item.name}</Text>
-                <Text style={styles.tableCell}>Phone: {item.phone_number}</Text>
+                <Text>Name: {item.name}</Text>
+                <Text>Phone: {item.phone_number}</Text>
               </View>
               <TouchableOpacity
                 style={styles.offerButton}
@@ -125,7 +153,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   map: {
     flex: 2,
-    marginTop: '5%',
+    marginTop: '7%',
     margin: '2%',
     borderRadius: 15,
     overflow: 'hidden',
@@ -133,42 +161,32 @@ const styles = StyleSheet.create({
   tableContainer: {
     flex: 1,
     padding: 10,
-    backgroundColor: '#fff',
     margin: '5%',
     borderRadius: 15,
+    backgroundColor: '#fff',
   },
   tableHeader: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginVertical: 10,
   },
   tableRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  riderInfo: {
-    flex: 3,
-  },
-  tableCell: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
+  riderInfo: { flex: 3 },
   offerButton: {
     flex: 1,
     backgroundColor: '#28a745',
     padding: 10,
     borderRadius: 5,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
 });
 
 export default DriverMap;

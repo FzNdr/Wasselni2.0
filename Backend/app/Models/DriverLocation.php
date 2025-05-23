@@ -2,16 +2,19 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class DriverLocation extends Model
 {
-    // If your table does not have timestamps, uncomment the next line:
-    // public $timestamps = false;
+    use HasFactory;
+    protected $table = 'driver_locations';
 
     protected $fillable = [
         'user_id',
         'latitude',
         'longitude',
     ];
+
+    
 }

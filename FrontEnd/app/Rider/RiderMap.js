@@ -42,23 +42,24 @@ const RiderMap = () => {
     fetchLocation();
   }, []);
 
-  const updateRiderLocation = async ({ latitude, longitude }) => {
+ const updateRiderLocation = async ({ latitude, longitude }) => {
   try {
-    const user_id = await AsyncStorage.getItem('userId'); // or however you store user ID
+    const token = await AsyncStorage.getItem('userToken');  // <-- add this here
+    const user_id = await AsyncStorage.getItem('userId');
 
-await fetch('http://10.0.2.2:8000/api/rider-locations', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-  },
-  body: JSON.stringify({ latitude, longitude, user_id }),
-});
-
+    await fetch('http://10.0.2.2:8000/api/rider-locations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ latitude, longitude, user_id }),
+    });
   } catch (error) {
     console.error('Error updating rider location:', error);
   }
 };
+
 
 
   const fetchNearbyDrivers = async ({ latitude, longitude }) => {
@@ -134,21 +135,49 @@ const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
     }
   };
 
-  const handleRequestRide = (driver) => {
-    if (!dropoffAddress) {
-      Alert.alert('Select Destination', 'Please tap on the map to select your drop-off location.');
-      return;
-    }
+  const handleRequestRide = async (driver) => {
+  if (!dropoffAddress) {
+    Alert.alert('Select Destination', 'Please tap on the map to select your drop-off location.');
+    return;
+  }
 
-    Alert.alert(
-      'Request Ride',
-      `Confirm ride from:\nPickup: ${pickupAddress}\nDrop-off: ${dropoffAddress}\nDriver: ${driver.name}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Confirm', onPress: () => console.log(`Ride requested from ${driver.name}`) },
-      ]
-    );
-  };
+  Alert.alert(
+    'Request Ride',
+    `Confirm ride from:\nPickup: ${pickupAddress}\nDrop-off: ${dropoffAddress}\nDriver: ${driver.name}`,
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Confirm',
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem('userToken');
+            const response = await fetch('http://10.0.2.2:8000/api/ride-requests', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                pickup_latitude: riderCoords.latitude,
+                pickup_longitude: riderCoords.longitude,
+                dropoff_latitude: dropoffLocation.latitude,
+                dropoff_longitude: dropoffLocation.longitude,
+                driver_id: driver.id,  // if your backend expects this
+              }),
+            });
+            if (!response.ok) throw new Error('Failed to request ride');
+            const data = await response.json();
+            Alert.alert('Success', 'Ride requested successfully.');
+            // Optionally clear dropoff or update UI here
+          } catch (error) {
+            Alert.alert('Error', error.message);
+          }
+        },
+      },
+    ]
+  );
+};
+
 
   return (
     <View style={styles.container}>

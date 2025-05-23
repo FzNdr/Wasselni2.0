@@ -7,19 +7,15 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  CheckBox,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { Rating } from 'react-native-ratings';
+import CheckBox from '@react-native-community/checkbox'; // Recommended for cross-platform checkbox
 
 const DriverRideInProgress = ({ route, navigation }) => {
-  const {
-    riderLocation,
-    driverLocation,
-    rideId,
-    paymentMethod,
-  } = route.params;
+  const { riderLocation, driverLocation, rideId, paymentMethod } = route.params;
 
   const [region, setRegion] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,48 +31,51 @@ const DriverRideInProgress = ({ route, navigation }) => {
       setRegion({
         latitude: midLat,
         longitude: midLng,
-        latitudeDelta: Math.abs(riderLocation.latitude - driverLocation.latitude) * 2.5 || 0.01,
-        longitudeDelta: Math.abs(riderLocation.longitude - driverLocation.longitude) * 2.5 || 0.01,
+        latitudeDelta:
+          Math.abs(riderLocation.latitude - driverLocation.latitude) * 2.5 || 0.01,
+        longitudeDelta:
+          Math.abs(riderLocation.longitude - driverLocation.longitude) * 2.5 || 0.01,
       });
     }
   }, [riderLocation, driverLocation]);
 
   const submitFeedback = async () => {
-    if (rating === 0) {
-      Alert.alert('Rating Required', 'Please rate the rider before submitting.');
-      return;
+  if (rating === 0) {
+    Alert.alert('Rating Required', 'Please provide a rating before submitting.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch('http://10.0.2.2/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from_user_id: driverUserId,  // Set this in each screen
+        to_user_id: riderUserId,     // Set this in each screen
+        ride_id: rideId,
+        rating,
+        comment: feedback,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      Alert.alert('Thank You', 'Your feedback has been submitted.');
+      setModalVisible(false);
+      navigation.goBack();
+    } else {
+      Alert.alert('Error', data.message || 'Failed to submit feedback.');
     }
+  } catch (error) {
+    Alert.alert('Error', 'An error occurred while submitting feedback.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-    setLoading(true);
-
-    try {
-      const response = await fetch('http://localhost/api/rides/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ride_id: rideId,
-          user_type: 'driver',
-          rating,
-          feedback,
-          ride_completed: rideCompleted,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Thank You', 'Your feedback has been submitted.');
-        setModalVisible(false);
-        navigation.goBack();
-      } else {
-        Alert.alert('Error', data.message || 'Failed to submit feedback.');
-      }
-    } catch {
-      Alert.alert('Error', 'An error occurred submitting feedback.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -137,6 +136,8 @@ const DriverRideInProgress = ({ route, navigation }) => {
                 value={rideCompleted}
                 onValueChange={setRideCompleted}
                 disabled={loading}
+                tintColors={{ true: '#dc3545', false: '#ccc' }}
+                boxType={Platform.OS === 'ios' ? 'square' : undefined} // for iOS styling
               />
               <Text style={styles.checkboxLabel}>Ride completed successfully</Text>
             </View>
@@ -148,13 +149,19 @@ const DriverRideInProgress = ({ route, navigation }) => {
                 <TouchableOpacity
                   style={[styles.button, styles.cancelButton]}
                   onPress={() => setModalVisible(false)}
+                  disabled={loading}
                 >
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  style={[styles.button, styles.submitButton]}
+                  style={[
+                    styles.button,
+                    styles.submitButton,
+                    rating === 0 && { opacity: 0.6 },
+                  ]}
                   onPress={submitFeedback}
+                  disabled={rating === 0 || loading}
                 >
                   <Text style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>
@@ -167,7 +174,6 @@ const DriverRideInProgress = ({ route, navigation }) => {
   );
 };
 
-export default DriverRideInProgress;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -180,7 +186,7 @@ const styles = StyleSheet.create({
   },
   paymentText: { fontSize: 16, marginBottom: 10 },
   endRideButton: {
-    backgroundColor: '#dc3545',
+    backgroundColor: '#007bff',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -213,6 +219,8 @@ const styles = StyleSheet.create({
   modalButtons: { marginTop: 20, flexDirection: 'row', justifyContent: 'space-between' },
   button: { flex: 1, paddingVertical: 12, borderRadius: 6, alignItems: 'center' },
   cancelButton: { backgroundColor: '#6c757d', marginRight: 10 },
-  submitButton: { backgroundColor: '#dc3545' },
+  submitButton: { backgroundColor: '#007bff' },
   buttonText: { color: '#fff', fontWeight: 'bold' },
 });
+
+export default DriverRideInProgress;

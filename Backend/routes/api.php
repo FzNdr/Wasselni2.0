@@ -14,9 +14,11 @@ use App\Http\Controllers\RiderLocationController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DriverRegistrationController;
+use App\Http\Controllers\FeedbackController;
 
-// Public routes
+// Public routes (no auth)
 Route::post('/driver-register', [DriverRegistrationController::class, 'register']);
+Route::post('/driver/register', [DriverRegistrationController::class, 'register']); // duplicate but kept if needed
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/promotions', [PromotionController::class, 'index']);
@@ -31,9 +33,9 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     // Rides
     Route::get('/rides', [RideController::class, 'index']);
     Route::post('/rides', [RideController::class, 'store']);
-    Route::post('/request-ride', [RideController::class, 'updateRideStatus']);
+    Route::post('/request-ride', [RideController::class, 'updateRideStatus']); // might be better named
 
-    // Location
+    // Location update (general)
     Route::post('/update-location', [LocationController::class, 'update']);
 
     // Payments
@@ -45,18 +47,16 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::post('/rider/profile', [RiderController::class, 'updateProfile']);
 
     // Rider Locations
-    Route::post('/rider-locations', [RiderLocationController::class, 'store']);
-    Route::post('/rider-locations', [RiderLocationController::class, 'updateLocation']);
+    Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
+    Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
     Route::get('/rider-locations', [RiderLocationController::class, 'index']);
-    Route::post('/rider-locations', [RiderLocationController::class, 'store']);
 
     // Driver Locations
-    Route::post('/driver-locations', [DriverLocationController::class, 'updateLocation']);
+    Route::post('/driver-locations/store', [DriverLocationController::class, 'store']);
+    Route::post('/driver-locations/update', [DriverLocationController::class, 'updateLocation']);
     Route::get('/driver-locations', [DriverLocationController::class, 'index']);
-    Route::get('/driver-locations/{id}', [DriverLocationController::class, 'show']);
-    Route::delete('/driver-locations/{id}', [DriverLocationController::class, 'destroy']);
 
-    // Ride Requests
+    // Ride Requests (Rider-side)
     Route::get('/ride-requests', [RideRequestController::class, 'index']);
     Route::post('/ride-requests', [RideRequestController::class, 'store']);
     Route::get('/ride-requests/{id}', [RideRequestController::class, 'show']);
@@ -74,10 +74,18 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::get('/rider/history', [RideHistoryController::class, 'riderHistory']);
     Route::get('/driver/history', [RideHistoryController::class, 'driverHistory']);
 
-    // Nearby riders/drivers
+    // Nearby Riders and Drivers
     Route::get('/ridersnearby', [DriverLocationController::class, 'nearbyRiders']);
     Route::get('/driversnearby', [RiderLocationController::class, 'nearbyDrivers']);
     Route::get('/drivers/nearby-riders', [DriverLocationController::class, 'nearbyRiders']);
     Route::post('/nearby-drivers', [DriverLocationController::class, 'nearbyDrivers']);
 
-Route::post('/driver/register', [DriverRegistrationController::class, 'register']);
+    // Driver Ride Requests (driver side)
+    Route::get('/driver/ride-requests', [RideRequestController::class, 'driverPendingRequests']);
+    Route::post('/driver/ride-requests/{id}/respond', [RideRequestController::class, 'respondToRequest']);
+
+
+//feedback 
+    Route::post('/feedback', [FeedbackController::class, 'store']);
+    Route::get('/feedback', [FeedbackController::class, 'index']); 
+

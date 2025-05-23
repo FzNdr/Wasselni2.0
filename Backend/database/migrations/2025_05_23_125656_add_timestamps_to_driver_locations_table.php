@@ -9,7 +9,7 @@ class AddTimestampsToDriverLocationsTable extends Migration
     public function up()
     {
         Schema::table('driver_locations', function (Blueprint $table) {
-            $table->timestamps();
+  
         });
     }
 

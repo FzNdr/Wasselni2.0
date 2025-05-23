@@ -7,19 +7,14 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  CheckBox,
+  Switch,
   ActivityIndicator,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { Rating } from 'react-native-ratings';
 
 const RiderRideInProgress = ({ route, navigation }) => {
-  const {
-    riderLocation,
-    driverLocation,
-    rideId,
-    paymentMethod,
-  } = route.params;
+  const { riderLocation, driverLocation, rideId, paymentMethod, targetUserId } = route.params;
 
   const [region, setRegion] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -35,48 +30,51 @@ const RiderRideInProgress = ({ route, navigation }) => {
       setRegion({
         latitude: midLat,
         longitude: midLng,
-        latitudeDelta: Math.abs(riderLocation.latitude - driverLocation.latitude) * 2.5 || 0.01,
-        longitudeDelta: Math.abs(riderLocation.longitude - driverLocation.longitude) * 2.5 || 0.01,
+        latitudeDelta:
+          Math.abs(riderLocation.latitude - driverLocation.latitude) * 2.5 || 0.01,
+        longitudeDelta:
+          Math.abs(riderLocation.longitude - driverLocation.longitude) * 2.5 || 0.01,
       });
     }
   }, [riderLocation, driverLocation]);
 
   const submitFeedback = async () => {
-    if (rating === 0) {
-      Alert.alert('Rating Required', 'Please rate the driver before submitting.');
-      return;
+  if (rating === 0) {
+    Alert.alert('Rating Required', 'Please provide a rating before submitting.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await fetch('http://10.0.2.2/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from_user_id: riderUserId,  // Set this in each screen
+        to_user_id: driverUserId,     // Set this in each screen
+        ride_id: rideId,
+        rating,
+        comment: feedback,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      Alert.alert('Thank You', 'Your feedback has been submitted.');
+      setModalVisible(false);
+      navigation.goBack();
+    } else {
+      Alert.alert('Error', data.message || 'Failed to submit feedback.');
     }
+  } catch (error) {
+    Alert.alert('Error', 'An error occurred while submitting feedback.');
+  } finally {
+    setLoading(false);
+  }
+};
 
-    setLoading(true);
-
-    try {
-      const response = await fetch('http://localhost/api/rides/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ride_id: rideId,
-          user_type: 'rider',
-          rating,
-          feedback,
-          ride_completed: rideCompleted,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        Alert.alert('Thank You', 'Your feedback has been submitted.');
-        setModalVisible(false);
-        navigation.goBack();
-      } else {
-        Alert.alert('Error', data.message || 'Failed to submit feedback.');
-      }
-    } catch {
-      Alert.alert('Error', 'An error occurred submitting feedback.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -86,7 +84,7 @@ const RiderRideInProgress = ({ route, navigation }) => {
           <Marker coordinate={driverLocation} title="Driver" pinColor="red" />
         </MapView>
       ) : (
-        <Text>Loading Map...</Text>
+        <Text style={{ flex: 1, textAlign: 'center', marginTop: 20 }}>Loading Map...</Text>
       )}
 
       <View style={styles.bottomBar}>
@@ -119,6 +117,7 @@ const RiderRideInProgress = ({ route, navigation }) => {
               imageSize={30}
               onFinishRating={setRating}
               style={{ paddingVertical: 10 }}
+              readonly={loading}
             />
 
             <Text style={styles.label}>Feedback:</Text>
@@ -133,7 +132,7 @@ const RiderRideInProgress = ({ route, navigation }) => {
             />
 
             <View style={styles.checkboxContainer}>
-              <CheckBox
+              <Switch
                 value={rideCompleted}
                 onValueChange={setRideCompleted}
                 disabled={loading}
@@ -148,13 +147,15 @@ const RiderRideInProgress = ({ route, navigation }) => {
                 <TouchableOpacity
                   style={[styles.button, styles.cancelButton]}
                   onPress={() => setModalVisible(false)}
+                  disabled={loading}
                 >
                   <Text style={styles.buttonText}>Cancel</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.button, styles.submitButton]}
-                  onPress={submitFeedback}
+                  onPress={completeRideAndSubmitFeedback}
+                  disabled={loading}
                 >
                   <Text style={styles.buttonText}>Submit</Text>
                 </TouchableOpacity>
@@ -166,7 +167,6 @@ const RiderRideInProgress = ({ route, navigation }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
@@ -215,4 +215,5 @@ const styles = StyleSheet.create({
   submitButton: { backgroundColor: '#007bff' },
   buttonText: { color: '#fff', fontWeight: 'bold' },
 });
+
 export default RiderRideInProgress;

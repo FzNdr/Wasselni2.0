@@ -13,13 +13,18 @@ return new class extends Migration
     {
        Schema::create('feedback', function (Blueprint $table) {
     $table->id();
-    $table->unsignedBigInteger('user_id');
-    $table->float('rating');
-    $table->text('comment');
+    $table->unsignedBigInteger('from_user_id');
+    $table->unsignedBigInteger('to_user_id');
+    $table->unsignedBigInteger('ride_id')->nullable();
+    $table->float('rating', 2);
+    $table->text('comment')->nullable();
     $table->timestamps();
 
-    $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+    $table->foreign('from_user_id')->references('id')->on('users')->onDelete('cascade');
+    $table->foreign('to_user_id')->references('id')->on('users')->onDelete('cascade');
+    $table->foreign('ride_id')->references('id')->on('rides')->onDelete('set null');
 });
+
     }
 
     /**

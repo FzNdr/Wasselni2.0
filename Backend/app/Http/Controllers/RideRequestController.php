@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RideRequest;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
 
 class RideRequestController extends Controller
 {
@@ -63,5 +62,50 @@ class RideRequestController extends Controller
         $rideRequest->save();
 
         return response()->json(['message' => 'Ride request canceled']);
+    }
+
+    // Driver: Get all pending ride requests without assigned driver
+    public function driverPendingRequests()
+    {
+        $rides = RideRequest::where('status', 'pending')
+            ->whereNull('driver_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($rides);
+    }
+
+    // Driver: Accept or decline a ride request
+    public function respondToRequest(Request $request, $id)
+    {
+        $request->validate([
+            'action' => 'required|in:accepted,declined',
+        ]);
+
+        $driverId = Auth::id();
+
+        // Only get pending ride requests that are unassigned
+        $rideRequest = RideRequest::where('id', $id)
+            ->where('status', 'pending')
+            ->whereNull('driver_id')
+            ->first();
+
+        if (!$rideRequest) {
+            return response()->json(['error' => 'Ride request not found or already assigned'], 404);
+        }
+
+        if ($request->action === 'accepted') {
+            $rideRequest->driver_id = $driverId;
+            $rideRequest->status = 'accepted';
+            $rideRequest->save();
+
+            return response()->json(['message' => 'Ride request accepted', 'ride' => $rideRequest]);
+        } else {
+            // declined - do not assign driver_id, just update status
+            $rideRequest->status = 'declined';
+            $rideRequest->save();
+
+            return response()->json(['message' => 'Ride request declined']);
+        }
     }
 }
