@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class DriverLocation extends Model
 {
-   protected $fillable = ['driver_id', 'latitude', 'longitude'];
+    // If your table does not have timestamps, uncomment the next line:
+    // public $timestamps = false;
 
-
-    public function driver()
-    {
-        return $this->belongsTo(User::class, 'driver_id');
-    }
+    protected $fillable = [
+        'user_id',
+        'latitude',
+        'longitude',
+    ];
 }

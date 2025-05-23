@@ -44,17 +44,17 @@ const RiderMap = () => {
 
   const updateRiderLocation = async ({ latitude, longitude }) => {
   try {
-    const token = await AsyncStorage.getItem('userToken');
-    const phone_number = await AsyncStorage.getItem('userPhone');
+    const user_id = await AsyncStorage.getItem('userId'); // or however you store user ID
 
-    await fetch('http://10.0.2.2:8000/api/rider-locations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ latitude, longitude, phone_number }),
-    });
+await fetch('http://10.0.2.2:8000/api/rider-locations', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ latitude, longitude, user_id }),
+});
+
   } catch (error) {
     console.error('Error updating rider location:', error);
   }

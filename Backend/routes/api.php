@@ -44,8 +44,10 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::post('/rider/profile', [RiderController::class, 'updateProfile']);
 
     // Rider Locations
-    Route::post('/rider/location', [RiderLocationController::class, 'updateLocation']);
-    Route::get('/rider/locations', [RiderLocationController::class, 'index']);
+    Route::post('/rider-locations', [RiderLocationController::class, 'store']);
+    Route::post('/rider-locations', [RiderLocationController::class, 'updateLocation']);
+    Route::get('/rider-locations', [RiderLocationController::class, 'index']);
+    Route::post('/rider-locations', [RiderLocationController::class, 'store']);
 
     // Driver Locations
     Route::post('/driver-locations', [DriverLocationController::class, 'updateLocation']);
@@ -77,4 +79,4 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::get('/drivers/nearby-riders', [DriverLocationController::class, 'nearbyRiders']);
     Route::post('/nearby-drivers', [DriverLocationController::class, 'nearbyDrivers']);
 
-Route::post('/register-driver', [DriverRegistrationController::class, 'register']);
+Route::post('/driver/register', [DriverRegistrationController::class, 'register']);

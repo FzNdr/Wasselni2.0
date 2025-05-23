@@ -101,7 +101,7 @@ formData.append('photo', {
   name: 'photo.jpg'
 });
 
-response = await fetch('http://10.0.2.2:8000/api/register-driver', {
+response = await fetch('http://10.0.2.2:8000/api/driver/register', {
   method: 'POST',
   headers: {
     Accept: 'application/json', // this is important!
