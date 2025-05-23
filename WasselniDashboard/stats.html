@@ -54,11 +54,12 @@
         data.forEach(row => {
           const tr = document.createElement('tr');
           tr.innerHTML = `
-            <td>${row.month}</td>
-            <td>${row.total_rides}</td>
-            <td>-</td> <!-- No sales available -->
-            <td>${row.new_users}</td>
-          `;
+        <td>${row.month}</td>
+        <td>${row.total_rides}</td>
+        <td>$${parseFloat(row.total_sales).toFixed(2)}</td>
+        <td>${row.new_users}</td>
+            `;
+
           tbody.appendChild(tr);
         });
       } else {

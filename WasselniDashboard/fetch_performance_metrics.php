@@ -11,6 +11,7 @@ $query = "
     SELECT 
         m.month,
         IFNULL(r.total_rides, 0) AS total_rides,
+        IFNULL(r.total_sales, 0) AS total_sales,
         IFNULL(u.new_users, 0) AS new_users
     FROM (
         SELECT DATE_FORMAT(created_at, '%Y-%m') AS month FROM rides
@@ -18,7 +19,10 @@ $query = "
         SELECT DATE_FORMAT(created_at, '%Y-%m') AS month FROM users
     ) AS m
     LEFT JOIN (
-        SELECT DATE_FORMAT(created_at, '%Y-%m') AS ride_month, COUNT(*) AS total_rides
+        SELECT 
+            DATE_FORMAT(created_at, '%Y-%m') AS ride_month, 
+            COUNT(*) AS total_rides,
+            ROUND(SUM(distance_km), 2) AS total_sales  -- $1 per km
         FROM rides
         GROUP BY ride_month
     ) r ON m.month = r.ride_month
