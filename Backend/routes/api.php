@@ -16,6 +16,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\DriverRegistrationController;
 
 // Public routes
+Route::post('/driver-register', [DriverRegistrationController::class, 'register']);
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/promotions', [PromotionController::class, 'index']);

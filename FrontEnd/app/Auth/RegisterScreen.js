@@ -81,6 +81,7 @@ const RegisterScreen = () => {
 
     try {
       let response;
+      console.log(registrationType)
       if (registrationType === 'Driver') {
        const formData = new FormData();
 formData.append('username', username);
@@ -90,24 +91,23 @@ formData.append('phoneNumber', phoneNumber);
 formData.append('govId', govId);
 formData.append('password', password);
 formData.append('password_confirmation', password); // for confirmed
-formData.append('drivingLicense', drivingLicense);
-formData.append('carPlate', carPlate);
-formData.append('vehicleBrand', vehicleBrand);
-formData.append('vehicleType', vehicleType);
-formData.append('totalSeats', totalSeats.toString());
-formData.append('photo', {
-  uri: photo.uri,
-  type: 'image/jpeg',
-  name: 'photo.jpg'
-});
-
-response = await fetch('http://10.0.2.2:8000/api/driver/register', {
+formData.append('driving_license', drivingLicense);
+formData.append('car_plate', carPlate);
+formData.append('vehicle_brand', vehicleBrand);
+formData.append('vehicle_type', vehicleType);
+formData.append('total_seats', totalSeats.toString());
+ formData.append('photo', {
+   uri: photo.uri,
+   type: 'image/jpeg',
+   name: 'photo.jpg'
+ });
+console.log(formData)
+response = await fetch('http://10.0.2.2:8000/api/driver-register', {
   method: 'POST',
-  headers: {
-    Accept: 'application/json', // this is important!
-  },
+  headers: { 'Content-Type': 'multipart/form-data' },
   body: formData,
 });
+console.log(response)
       } else {
         // Rider registration payload
         const payload = {
@@ -129,9 +129,9 @@ response = await fetch('http://10.0.2.2:8000/api/driver/register', {
       }
 
       const contentType = response.headers.get('Content-Type');
-      if (!contentType || !contentType.includes('application/json')) {
-        throw new Error('Invalid response format. Expected JSON.');
-      }
+      // if (!contentType || !contentType.includes('application/json')) {
+      //   throw new Error('Invalid response format. Expected JSON. h ih i');
+      // }
 
       const data = await response.json();
 console.log('Response data:', data);
@@ -140,7 +140,7 @@ console.log('Response data:', data);
         Alert.alert('Success', 'Registration successful!');
         // Redirect based on registration type (case insensitive check)
         if (registrationType.toLowerCase() === 'driver') {
-          router.push('/Auth/DriverApplicationStatus');
+          router.push('/Driver/DriverHomePage');
         } else {
           router.push('/Rider/RiderHomePage');
         }
