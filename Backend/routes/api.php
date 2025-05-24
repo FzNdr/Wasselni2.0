@@ -18,7 +18,6 @@ use App\Http\Controllers\FeedbackController;
 
 // Public routes (no auth)
 Route::post('/driver-register', [DriverRegistrationController::class, 'register']);
-Route::post('/driver/register', [DriverRegistrationController::class, 'register']); // duplicate but kept if needed
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/promotions', [PromotionController::class, 'index']);

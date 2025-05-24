@@ -34,21 +34,40 @@
       font-size: 14px;
       box-sizing: border-box;
     }
-    .btn {
+    /* Normalize button and link styles to match */
+    .btn, .back-btn {
+      box-sizing: border-box;
       width: 100%;
       padding: 12px;
-      background-color: #06af00;
-      color: white;
-      border: none;
-      border-radius: 6px;
       font-size: 16px;
       font-weight: bold;
+      border-radius: 6px;
+      border: none;
       cursor: pointer;
-      margin-top: 10px;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      font-family: inherit;
+      line-height: 1.3;
+      user-select: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
       transition: background-color 0.3s ease;
+      color: white;
+      margin-top: 10px;
+    }
+    .btn {
+      background-color: #06af00;
     }
     .btn:hover {
       background-color: #168300;
+    }
+    .back-btn {
+      background-color: #0088ff;
+    }
+    .back-btn:hover {
+      background-color: #007ad8;
     }
     #rider-results {
       margin-top: 20px;
@@ -69,15 +88,6 @@
     }
     #rider-results td {
       background-color: #f9f9f9;
-    }
-    .back-btn {
-      margin-top: 20px;
-      display: block;
-      text-align: center;
-      background-color: #0088ff;
-    }
-    .back-btn:hover {
-      background-color: #007ad8;
     }
   </style>
 </head>

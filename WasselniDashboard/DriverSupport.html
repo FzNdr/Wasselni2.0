@@ -5,34 +5,145 @@
   <title>Driver Support - Pending Applications</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
+    body {
+      background-color: #f7f9fb;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    .dashboard {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background-color: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #222;
+      margin-bottom: 2rem;
+      font-size: 28px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 1rem;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
     }
+
     th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+      padding: 14px 10px;
       text-align: center;
+      border: 1px solid #e0e0e0;
     }
+
     th {
       background-color: #4CAF50;
       color: white;
+      font-size: 16px;
     }
+
+    td {
+      font-size: 15px;
+    }
+
     img {
-      max-width: 200px;
+      max-width: 180px;
       height: auto;
+      border-radius: 6px;
     }
+
     button {
-      margin: 0 5px;
-      padding: 5px 10px;
+      padding: 8px 14px;
+      margin: 3px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .btn {
+      background-color: #007bff;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 2rem;
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .button-wrapper {
+      text-align: center;
+    }
+
+    .message {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      padding: 10px;
+      border-radius: 6px;
+    }
+    .success {
+      color: #155724;
+      background-color: #d4edda;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      color: #721c24;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard {
+        padding: 1rem;
+      }
+
+      table, th, td {
+        font-size: 14px;
+      }
+
+      img {
+        max-width: 100px;
+      }
+
+      button {
+        padding: 6px 10px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="dashboard">
     <h2>Pending Driver Applications</h2>
+
+    <!-- Success or error message display -->
+    <div id="message-container"></div>
+
     <table id="applications-table">
       <thead>
         <tr>
@@ -48,10 +159,28 @@
       </tbody>
     </table>
 
-    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+    <div class="button-wrapper">
+      <a href="dashboard.html" class="btn">Back to Dashboard</a>
+    </div>
   </div>
 
   <script>
+    // Show success/error message from URL parameters (for form POST + redirect method)
+    function showMessageFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const container = document.getElementById('message-container');
+      if (params.has('update')) {
+        const update = params.get('update');
+        if (update === 'success') {
+          container.innerHTML = '<div class="message success">Application status updated successfully.</div>';
+        } else if (update === 'fail') {
+          container.innerHTML = '<div class="message error">Failed to update application status.</div>';
+        }
+        // Remove query params from URL to avoid message persisting after reload
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+
     async function fetchApplications() {
       const res = await fetch('fetch_pending_driver_applications.php');
       const data = await res.json();
@@ -81,11 +210,11 @@
     }
 
     async function updateApplicationStatus(appId, status) {
-      if (!confirm(`Are you sure you want to ${status.toLowerCase()} this application?`)) return;
+      if (!confirm("Are you sure you want to " + status.toLowerCase() + " this application?")) return;
 
       const res = await fetch('update_driver_application.php', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: appId, status }),
       });
       const result = await res.json();
@@ -95,6 +224,7 @@
       }
     }
 
+    showMessageFromURL();
     fetchApplications();
   </script>
 </body>

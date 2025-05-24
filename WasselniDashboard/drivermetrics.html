@@ -4,72 +4,116 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Driver Metrics</title>
-  <link rel="stylesheet" href="styles.css" />
   <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+    }
     .dashboard {
-      max-width: 900px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: #f9f9f9;
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #fff;
+      padding: 30px;
       border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    h2, h3 {
-      color: #333;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
+    h2 {
       text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+      font-weight: bold;
     }
-    th {
-      background-color: #2196F3;
-      color: white;
+    #driver-search {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
     }
-    #search-username {
-      width: 300px;
-      padding: 8px;
-      margin-right: 8px;
-    }
-    .btn {
-      padding: 8px 12px;
-      background-color: #2196F3;
-      color: white;
+    /* Make button and link visually identical */
+    .btn, .back-btn {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 6px;
       border: none;
       cursor: pointer;
-      border-radius: 4px;
+      display: inline-block;
+      text-align: center;
+      text-decoration: none;
+      font-family: inherit;
+      line-height: 1.3;
+      user-select: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      transition: background-color 0.3s ease;
+      color: white;
+      margin-top: 10px;
+    }
+    .btn {
+      background-color: #06af00;
     }
     .btn:hover {
-      background-color: #0b7dda;
+      background-color: #168300;
+    }
+    .back-btn {
+      background-color: #0088ff;
+      /* To behave like button on click */
+      border: none;
+    }
+    .back-btn:hover {
+      background-color: #007ad8;
+    }
+    #driver-results {
+      margin-top: 20px;
+    }
+    #driver-results table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    #driver-results th, #driver-results td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: center;
+    }
+    #driver-results th {
+      background-color: #007bff;
+      color: white;
+    }
+    #driver-results td {
+      background-color: #f9f9f9;
     }
   </style>
 </head>
 <body>
   <div class="dashboard">
     <h2>Driver Metrics</h2>
-
-    <input type="text" id="search-username" placeholder="Enter Username" />
+    <input type="text" id="driver-search" placeholder="Enter Username" />
     <button class="btn" onclick="searchDriver()">Search</button>
 
-    <div id="driver-results" style="margin-top: 1rem;"></div>
+    <div id="driver-results"></div>
 
-    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+    <a href="dashboard.html" class="btn back-btn">Back to Dashboard</a>
   </div>
 
   <script>
     async function searchDriver() {
-      const username = document.getElementById('search-username').value.trim();
+      const username = document.getElementById('driver-search').value.trim();
+      const resultsDiv = document.getElementById('driver-results');
+
       if (!username) {
         alert('Please enter a username');
         return;
       }
 
-      const resultsDiv = document.getElementById('driver-results');
       resultsDiv.innerHTML = 'Loading...';
 
       try {
@@ -81,9 +125,9 @@
           return;
         }
 
-        let html = `<h3>Driver: ${data.driver.username} (ID: ${data.driver.id})</h3>`;
+        let html = `<h3 style="color: #333;">Driver: ${data.driver.username} (ID: ${data.driver.id})</h3>`;
         html += `<p><strong>Total Rides:</strong> ${data.total_rides}</p>`;
-        html += `<p><strong>Current Credits:</strong> ${parseFloat(data.credits).toFixed(2)}</p>`;
+        html += `<p><strong>Current Credits:</strong> $${parseFloat(data.credits).toFixed(2)}</p>`;
 
         if (data.rides.length === 0) {
           html += '<p>No rides found for this driver.</p>';
@@ -92,9 +136,9 @@
           data.rides.forEach(ride => {
             html += `<tr>
               <td>${ride.ride_id}</td>
-              <td>${ride.rider_username}</td>
-              <td>${ride.payment_method}</td>
-              <td>${parseFloat(ride.amount).toFixed(2)}</td>
+              <td>${ride.rider_username || 'N/A'}</td>
+              <td>${ride.payment_method || 'N/A'}</td>
+              <td>${ride.amount ? parseFloat(ride.amount).toFixed(2) : '0.00'}</td>
             </tr>`;
           });
           html += '</tbody></table>';

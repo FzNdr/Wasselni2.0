@@ -1,15 +1,33 @@
 <?php
-include '../db.php';
-session_start();
+// update_driver_application.php
+header('Content-Type: application/json');
 
-$id = $_POST['id'];
-$action = $_POST['action'];
-$status = $action === 'approve' ? 'Approved' : 'Denied';
-$reviewer_id = $_SESSION['admin_id'] ?? 1; // Default to admin ID 1 if session not set
+// 1. Get JSON input
+$data = json_decode(file_get_contents("php://input"), true);
 
-$stmt = $conn->prepare("UPDATE driver_applications SET status = ?, reviewed_at = NOW(), reviewer_id = ? WHERE id = ?");
-$stmt->bind_param("sii", $status, $reviewer_id, $id);
-$stmt->execute();
+if (!isset($data['id']) || !isset($data['status'])) {
+    echo json_encode(["success" => false, "message" => "Missing parameters"]);
+    exit;
+}
 
-header("Location: driver_applications.php");
-exit();
+$id = intval($data['id']);
+$status = $data['status'];
+
+// 2. Connect to DB
+$conn = new mysqli("localhost", "root", "", "wasselni");
+if ($conn->connect_error) {
+    echo json_encode(["success" => false, "message" => "DB connection failed"]);
+    exit;
+}
+
+// 3. Update query
+$stmt = $conn->prepare("UPDATE driver_applications SET status = ? WHERE id = ?");
+$stmt->bind_param("si", $status, $id);
+if ($stmt->execute()) {
+    echo json_encode(["success" => true, "message" => "Application status updated to '$status'"]);
+} else {
+    echo json_encode(["success" => false, "message" => "Update failed"]);
+}
+$stmt->close();
+$conn->close();
+?>

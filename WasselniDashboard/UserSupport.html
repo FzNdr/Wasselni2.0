@@ -2,61 +2,114 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>User Support</title>
-  <link rel="stylesheet" href="styles.css">
+  <title>User Support - Feedback Overview</title>
   <style>
-    .low-rating {
-      background-color: #ffcccc;
-      font-weight: bold;
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: #f0f0f0; /* Light grey background */
+      color: #333;
     }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 2rem;
+      border-radius: 12px; /* Rounded corners */
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      margin-top: 0;
+      text-align: left;
+      color: #222;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 1rem;
+      background-color: white;
+      border-radius: 8px; /* Rounded corners */
+      overflow: hidden;
     }
+
     th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: left;
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: center;
     }
-    .btn {
-      display: inline-block;
-      padding: 10px 20px;
+
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    .low-rating {
+      background-color: #ffcccc;
+      font-weight: bold;
+      color: #b00020;
+    }
+
+    .btn-container {
+      display: flex;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+
+    a.btn {
+      padding: 12px 24px;
       background-color: #007bff;
       color: white;
       text-decoration: none;
-      border-radius: 4px;
+      border-radius: 6px; /* Rounded button */
       font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s;
     }
-    .btn:hover {
+
+    a.btn:hover {
       background-color: #0056b3;
     }
   </style>
 </head>
 <body>
-  <h2>User Support - Feedback Overview</h2>
+  <div class="container">
+<h2 style="text-align: center;">User Support - Feedback Overview</h2>
 
-  <table>
-    <thead>
-      <tr>
-        <th>User Name</th>
-        <th>Phone</th>
-        <th>Role</th>
-        <th>Rating</th>
-        <th>Feedback</th>
-      </tr>
-    </thead>
-    <tbody id="feedback-body">
-      <!-- JS fills data -->
-    </tbody>
-  </table>
+    <table>
+      <thead>
+        <tr>
+          <th>User Name</th>
+          <th>Phone</th>
+          <th>Role</th>
+          <th>Rating</th>
+          <th>Feedback</th>
+        </tr>
+      </thead>
+      <tbody id="feedback-body">
+        <!-- JS fills data -->
+      </tbody>
+    </table>
+
+    <div class="btn-container">
+      <a href="dashboard.html" class="btn">Back to Dashboard</a>
+    </div>
+  </div>
 
   <script>
     fetch('fetch_feedback.php')
       .then(res => res.json())
       .then(data => {
         const tbody = document.getElementById('feedback-body');
+        tbody.innerHTML = '';
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">No feedback found.</td></tr>';
+          return;
+        }
+
         data.forEach(row => {
           const tr = document.createElement('tr');
           if (parseFloat(row.rating) < 1.5) {
@@ -74,13 +127,9 @@
       })
       .catch(err => {
         const tbody = document.getElementById('feedback-body');
-        tbody.innerHTML = '<tr><td colspan="5" style="color:red; text-align:center;">Failed to load feedback.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="color:red;">Failed to load feedback.</td></tr>';
         console.error('Error fetching feedback:', err);
       });
   </script>
-
-  <div style="display: flex; justify-content: center; margin-top: 2rem;">
-    <a href="dashboard.html" class="btn">Back to Dashboard</a>
-  </div>
 </body>
 </html>
