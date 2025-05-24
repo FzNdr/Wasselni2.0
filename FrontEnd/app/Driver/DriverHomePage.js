@@ -17,7 +17,7 @@ const DriverHomePage = () => {
   const isDarkMode = colorScheme === 'dark';
 
   const [promotions, setPromotions] = useState([]);
-  const [accumulatedPoints, setAccumulatedPoints] = useState(250);
+  const [accumulatedPoints, setAccumulatedPoints] = useState();
 
   useEffect(() => {
   const fetchPromotions = async () => {

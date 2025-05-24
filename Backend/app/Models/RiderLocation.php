@@ -7,12 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class RiderLocation extends Model
 {
-   
+    use HasFactory;
     protected $table = 'rider_locations';
-
-    protected $fillable = ['user_id', 'latitude', 'longitude'];
     public $timestamps = true;
 
-
+    protected $fillable = [
+        'user_id',
+        'latitude',
+        'longitude',
+    ];
+public function user()
+{
+    return $this->belongsTo(User::class);
+}
     
 }

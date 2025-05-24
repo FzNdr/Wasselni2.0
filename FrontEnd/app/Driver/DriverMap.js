@@ -95,29 +95,30 @@ const DriverMap = () => {
   };
 
   const loadNearbyRiders = async ({ latitude, longitude }) => {
-    try {
-      const response = await fetch('http://10.0.2.2:8000/api/rider-locations', {
-        headers: { 'Accept': 'application/json' }
-      });
-      const list = await response.json();
-      console.log('Rider fetch response:', list);
+  try {
+    const response = await fetch('http://10.0.2.2:8000/api/rider-locations', {
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await response.json();
+    console.log('Rider fetch response:', data);
 
-      const nearby = Array.isArray(list)
-        ? list.filter(r =>
-            getDistance(
-              latitude,
-              longitude,
-              parseFloat(r.latitude),
-              parseFloat(r.longitude)
-            ) <= 2
-          )
-        : [];
-
+    if (data.success && Array.isArray(data.riderLocations)) {
+      const nearby = data.riderLocations.filter(r =>
+        getDistance(
+          latitude,
+          longitude,
+          parseFloat(r.latitude),
+          parseFloat(r.longitude)
+        ) <= 2
+      );
       setRiders(nearby);
-    } catch (err) {
-      console.error('Error fetching riders:', err);
+    } else {
+      setRiders([]);
     }
-  };
+  } catch (err) {
+    console.error('Error fetching riders:', err);
+  }
+};
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const toRad = v => (v * Math.PI) / 180;

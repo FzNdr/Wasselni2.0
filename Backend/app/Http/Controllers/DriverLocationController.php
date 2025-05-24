@@ -54,15 +54,24 @@ public function store(Request $request)
         ], 500);
     }
 }
-
 public function index(Request $request)
 {
-   
-        $driverLocations = DriverLocation::all();
+    $driverLocations = DriverLocation::with('user')->get();
+
+    $formatted = $driverLocations->map(function ($location) {
+        return [
+            'id' => $location->id,
+            'latitude' => $location->latitude,
+            'longitude' => $location->longitude,
+            'user_id' => $location->user_id,
+'name' => optional($location->user)->first_name . ' ' . optional($location->user)->last_name,
+            'phone_number' => optional($location->user)->phone_number,
+        ];
+    });
 
     return response()->json([
         'success' => true,
-'driverLocations' => $driverLocations
+        'driverLocations' => $formatted
     ]);
 }
 

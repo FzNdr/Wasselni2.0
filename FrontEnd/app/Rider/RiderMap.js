@@ -41,6 +41,7 @@ const RiderMap = () => {
           const updatedLoc = await Location.getCurrentPositionAsync({});
           await sendRiderLocation(updatedLoc.coords);
           await loadNearbyDrivers(updatedLoc.coords);
+          
         } catch (err) {
           console.error('Interval Location Error:', err);
         }
@@ -77,6 +78,7 @@ const RiderMap = () => {
   };
 
   const loadNearbyDrivers = async ({ latitude, longitude }) => {
+    
     try {
       const res = await fetch('http://10.0.2.2:8000/api/driver-locations');
       const json = await res.json();

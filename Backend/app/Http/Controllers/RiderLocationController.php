@@ -31,8 +31,26 @@ class RiderLocationController extends Controller
         return $this->store($request); // reuse same logic
     }
 
-    public function index()
-    {
-        return response()->json(RiderLocation::all());
-    }
+    public function index(Request $request)
+{
+    $riderLocations = RiderLocation::with('user')->get();
+
+    $formatted = $riderLocations->map(function ($location) {
+        return [
+            'id' => $location->id,
+            'latitude' => $location->latitude,
+            'longitude' => $location->longitude,
+            'user_id' => $location->user_id,
+            'name' => trim(optional($location->user)->first_name . ' ' . optional($location->user)->last_name),
+            'phone_number' => optional($location->user)->phone_number,
+        ];
+    });
+
+    return response()->json([
+        'success' => true,
+        'riderLocations' => $formatted
+    ]);
+}
+
+
 }
