@@ -8,6 +8,14 @@ use App\Models\RiderLocation;
 
 class RiderLocationController extends Controller
 {
+ public function index()
+    {
+        // Fetch all locations, or filter by something if you like
+        $locations = RiderLocation::all();
+
+        return response()->json($locations);
+    }
+
     public function updateLocation(Request $request)
     {
         $request->validate([

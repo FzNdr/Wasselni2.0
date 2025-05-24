@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RideController;
-use App\Http\Controllers\LocationController;
 use App\Http\Controllers\RiderController;
 use App\Http\Controllers\RideRequestController;
 use App\Http\Controllers\PaymentController;
@@ -34,9 +33,6 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::post('/rides', [RideController::class, 'store']);
     Route::post('/request-ride', [RideController::class, 'updateRideStatus']); // might be better named
 
-    // Location update (general)
-    Route::post('/update-location', [LocationController::class, 'update']);
-
     // Payments
     Route::post('/payment/cash', [PaymentController::class, 'payWithCash']);
     Route::post('/payment/credits', [PaymentController::class, 'payWithCredits']);
@@ -45,10 +41,10 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
     Route::get('/rider/profile', [RiderController::class, 'profile']);
     Route::post('/rider/profile', [RiderController::class, 'updateProfile']);
 
-    // Rider Locations
-    Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
-    Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
-    Route::get('/rider-locations', [RiderLocationController::class, 'index']);
+
+Route::get('/rider-locations', [RiderLocationController::class, 'index']);
+Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
+Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
 
     // Driver Locations
     Route::post('/driver-locations/store', [DriverLocationController::class, 'store']);

@@ -22,12 +22,12 @@ class DriverLocationController extends Controller
         );
 
         return response()->json([
-            'message' => 'Rider location updated',
+            'message' => 'Driver location updated',
             'location' => $location
         ]);
     }
 
-  public function store(Request $request)
+public function store(Request $request)
 {
     \Log::info('Request Data:', ['data' => $request->all()]);
 
@@ -37,7 +37,7 @@ class DriverLocationController extends Controller
         'longitude' => 'required|numeric|between:-180,180',
     ]);
 
-    $riderLocation = DriverLocation::updateOrCreate(
+    $driverLocation = DriverLocation::updateOrCreate(
         ['user_id' => $validated['user_id']],
         [
             'latitude' => $validated['latitude'],
@@ -45,7 +45,18 @@ class DriverLocationController extends Controller
         ]
     );
 
-    return response()->json(['success' => true, 'message' => 'Location saved', 'location' => $driverlocation]);
+    return response()->json(['success' => true, 'message' => 'Location saved', 'location' => $driverLocation]);
 }
+public function index(Request $request)
+{
+   
+        $driverLocations = DriverLocation::all();
+
+    return response()->json([
+        'success' => true,
+'driverLocations' => $driverLocations
+    ]);
+}
+
 
 }

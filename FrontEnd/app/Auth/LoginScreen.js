@@ -1,7 +1,6 @@
 import { Picker } from '@react-native-picker/picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-
 import {
   Alert,
   ScrollView,
@@ -12,6 +11,7 @@ import {
   View,
   useColorScheme
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import FormToggle from '../../components/FormToggle';
 
 const LoginScreen = () => {
@@ -19,41 +19,44 @@ const LoginScreen = () => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
 
-  const [loginType, setLoginType] = useState('rider');
+  const [loginType, setLoginType] = useState('Rider');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = async () => {
-
     if (!username || !password) {
       Alert.alert('Missing Fields', 'Please fill in all the required fields.');
       return;
     }
 
     try {
-      console.log('Sending login request...', { username, password, role: loginType });
+      console.log('Sending login request...', {
+        username,
+        password,
+        role: loginType.toLowerCase()
+      });
       const response = await fetch('http://10.0.2.2:8000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role: loginType.toLowerCase() }),
-
+        body: JSON.stringify({
+          username,
+          password,
+          role: loginType.toLowerCase()
+        }),
       });
 
       console.log('Response status:', response.status);
-
       const data = await response.json();
       console.log('Response data:', data);
 
       if (data.token && data.user) {
+        // store the user ID for later location updates
+        await AsyncStorage.setItem('userId', data.user.id.toString());
+
         if (loginType.toLowerCase() === 'driver') {
-           router.push('/Driver/DriverHomePage');
-
-
+          router.push('/Driver/DriverHomePage');
         } else {
           router.push('/Rider/RiderHomePage');
-
-         
-
         }
       } else {
         Alert.alert('Login Failed', data.message || 'Invalid credentials.');
@@ -64,7 +67,6 @@ const LoginScreen = () => {
     }
   };
 
-
   const themeStyles = {
     backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
     textColor: isDarkMode ? '#FFFFFF' : '#1c1c1c',
@@ -73,7 +75,7 @@ const LoginScreen = () => {
     formContainerColor: isDarkMode ? '#1a1a1a' : '#f0f0f0',
     borderColor: isDarkMode ? '#555' : '#ccc',
     buttonColor: isDarkMode ? '#1e90ff' : '#007AFF',
-    buttonTextColor: isDarkMode ? '#fff' : '#fff',
+    buttonTextColor: '#fff',
     buttonPadding: 15,
     buttonRadius: 8,
     buttonFontSize: 18,
@@ -96,12 +98,12 @@ const LoginScreen = () => {
       >
         <Picker
           selectedValue={loginType}
-          onValueChange={(itemValue) => setLoginType(itemValue)}
+          onValueChange={setLoginType}
           style={[styles.picker, { color: themeStyles.textColor }]}
           dropdownIconColor={themeStyles.textColor}
         >
-          <Picker.Item label="Rider" value="Rider" />
-          <Picker.Item label="Driver" value="Driver" />
+          <Picker.Item label="Rider" value="rider" />
+          <Picker.Item label="Driver" value="driver" />
         </Picker>
       </View>
 
@@ -159,7 +161,7 @@ const LoginScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40, // Adjusted for FormToggle height
+    paddingTop: 40,
     paddingHorizontal: 20,
   },
   formToggleWrapper: {
@@ -180,20 +182,10 @@ const styles = StyleSheet.create({
   },
   picker: {
     width: '100%',
-    marginVertical: 10,
     backgroundColor: 'transparent',
   },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  input: {
-    height: 50,
-    marginBottom: 15,
-    paddingHorizontal: 15,
-    borderRadius: 8,
-    borderWidth: 1,
+  formContainer: {
+    paddingBottom: 20,
   },
   scrollView: {
     marginBottom: 20,
@@ -203,6 +195,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
+  },
+  input: {
+    height: 50,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    borderWidth: 1,
   },
   button: {
     alignItems: 'center',

@@ -44,17 +44,33 @@ const RiderMap = () => {
 
  const updateRiderLocation = async ({ latitude, longitude }) => {
   try {
-    const token = await AsyncStorage.getItem('userToken');  // <-- add this here
-    const user_id = await AsyncStorage.getItem('userId');
+    const token = await AsyncStorage.getItem('userToken');
+    const userId = await AsyncStorage.getItem('userId');  // match your key here
 
-    await fetch('http://10.0.2.2:8000/api/rider-locations', {
+    if (!token || !userId) {
+      console.warn('Missing token or userId in AsyncStorage');
+      return;
+    }
+
+    const response = await fetch('http://10.0.2.2:8000/api/rider-locations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ latitude, longitude, user_id }),
+      body: JSON.stringify({
+        user_id: userId,
+        latitude,
+        longitude,
+      }),
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to update rider location:', errorText);
+    } else {
+      const resData = await response.json();
+      console.log('Rider location updated:', resData);
+    }
   } catch (error) {
     console.error('Error updating rider location:', error);
   }
@@ -62,42 +78,42 @@ const RiderMap = () => {
 
 
 
+
   const fetchNearbyDrivers = async ({ latitude, longitude }) => {
   try {
+    const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    });
 
-    const token = await AsyncStorage.getItem('userToken');
-const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
-  headers: {
-    Accept: 'application/json',
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`, 
-  },
-});
-
-
-    const text = await response.text();
-
-    try {
-      const data = JSON.parse(text);
-
-      const nearby = data.filter((driver) => {
-        const distance = getDistanceFromLatLonInKm(
-          latitude,
-          longitude,
-          parseFloat(driver.latitude),
-          parseFloat(driver.longitude)
-        );
-        return distance <= 2;
-      });
-
-      setDrivers(nearby);
-    } catch (jsonError) {
-      console.error('Failed to parse driver response as JSON:', text);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Failed to fetch drivers:', errorText);
+      return;
     }
+
+    const jsonResponse = await response.json();
+    const driversData = jsonResponse.driverLocations || [];
+
+    const nearby = driversData.filter((driver) => {
+      const distance = getDistanceFromLatLonInKm(
+        latitude,
+        longitude,
+        parseFloat(driver.latitude),
+        parseFloat(driver.longitude)
+      );
+      return distance <= 2;
+    });
+
+    setDrivers(nearby);
   } catch (error) {
     console.error('Error fetching drivers:', error.message);
   }
 };
+
+
 
   const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
     const toRad = (value) => (value * Math.PI) / 180;
@@ -134,8 +150,7 @@ const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
       setDropoffAddress(formatted || 'Unknown Location');
     }
   };
-
-  const handleRequestRide = async (driver) => {
+const handleRequestRide = async (driver) => {
   if (!dropoffAddress) {
     Alert.alert('Select Destination', 'Please tap on the map to select your drop-off location.');
     return;
@@ -151,6 +166,13 @@ const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
         onPress: async () => {
           try {
             const token = await AsyncStorage.getItem('userToken');
+            const rider_id = await AsyncStorage.getItem('userId'); // Get rider id
+
+            if (!rider_id) {
+              Alert.alert('Error', 'User not logged in or no user ID found.');
+              return;
+            }
+
             const response = await fetch('http://10.0.2.2:8000/api/ride-requests', {
               method: 'POST',
               headers: {
@@ -158,17 +180,25 @@ const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
                 Authorization: `Bearer ${token}`,
               },
               body: JSON.stringify({
+                rider_id: rider_id,             // Add rider_id here
                 pickup_latitude: riderCoords.latitude,
                 pickup_longitude: riderCoords.longitude,
                 dropoff_latitude: dropoffLocation.latitude,
                 dropoff_longitude: dropoffLocation.longitude,
-                driver_id: driver.id,  // if your backend expects this
+                driver_id: driver.id,
               }),
             });
-            if (!response.ok) throw new Error('Failed to request ride');
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Failed to request ride: ${errorText}`);
+            }
+
             const data = await response.json();
+            console.log('Ride request response:', data);
             Alert.alert('Success', 'Ride requested successfully.');
-            // Optionally clear dropoff or update UI here
+            // Clear dropoff or update UI here if needed
+
           } catch (error) {
             Alert.alert('Error', error.message);
           }
