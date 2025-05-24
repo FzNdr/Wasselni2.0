@@ -2,21 +2,111 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Delete Promotion</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+    }
+    .dashboard {
+      max-width: 500px;
+      margin: 40px auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    h3 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+      font-weight: bold;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 600;
+    }
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      font-size: 14px;
+      color: #333;
+      font-family: inherit;
+    }
+     .btn1 {
+  display: block;
+  text-align: center;
+  padding: 10px 20px;
+  margin: 10px auto;
+  background-color: #007bff;
+  color: white;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+    button.btn {
+      margin-top: 25px;
+      width: 100%;
+      padding: 12px;
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    button.btn:hover {
+      background-color: #c82333;
+    }
+  </style>
 </head>
 <body>
   <div class="dashboard">
-    <div class="box">
-      <h3>Delete Promotion</h3>
-      <form action="delete_promotion.php" method="POST" onsubmit="return confirm('Are you sure you want to delete this promotion?');">
-        <label for="id">Promotion ID:</label>
-        <input type="number" name="id" id="id" required />
-        
-        <button type="submit" class="btn btn-danger">Delete Promotion</button>
-      </form>
-    </div>
+    <h3>Delete Promotion</h3>
+    <form id="deleteForm">
+      <label for="id">Promotion ID:</label>
+      <input type="number" name="id" id="id" required />
+
+      <button type="submit" class="btn">Delete Promotion</button>
+                <a href="dashboard.html" class="btn1">Back to Dashboard</a>
+
+    </form>
   </div>
+
+  <script>
+    const form = document.getElementById('deleteForm');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (!confirm("Are you sure you want to delete this promotion?")) return;
+
+      const formData = new FormData(form);
+
+      fetch('delete_promotion.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert((data.success ? "✅ Success: " : "❌ Error: ") + data.message);
+        if (data.success) form.reset();
+      })
+      .catch(() => {
+        alert("Error: enter a valid promotion id.");
+      });
+    });
+  </script>
 </body>
 </html>

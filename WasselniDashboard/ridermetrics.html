@@ -4,36 +4,80 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Rider Metrics</title>
-  <link rel="stylesheet" href="styles.css" />
   <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #f0f2f5;
+    }
+    .dashboard {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333;
+      font-weight: bold;
+    }
+    #rider-search {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #06af00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.3s ease;
+    }
+    .btn:hover {
+      background-color: #168300;
+    }
+    #rider-results {
+      margin-top: 20px;
+    }
     #rider-results table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 1rem;
+      margin-top: 15px;
     }
     #rider-results th, #rider-results td {
       border: 1px solid #ddd;
-      padding: 8px;
+      padding: 10px;
       text-align: center;
     }
     #rider-results th {
-      background-color: #2196F3;
+      background-color: #007bff;
       color: white;
     }
-    #rider-search {
-      width: 300px;
-      padding: 8px;
-      margin-right: 8px;
+    #rider-results td {
+      background-color: #f9f9f9;
     }
-    .btn {
-      padding: 8px 12px;
-      background-color: #2196F3;
-      color: white;
-      border: none;
-      cursor: pointer;
+    .back-btn {
+      margin-top: 20px;
+      display: block;
+      text-align: center;
+      background-color: #0088ff;
     }
-    .btn:hover {
-      background-color: #0b7dda;
+    .back-btn:hover {
+      background-color: #007ad8;
     }
   </style>
 </head>
@@ -43,20 +87,21 @@
     <input type="text" id="rider-search" placeholder="Enter Username" />
     <button class="btn" onclick="searchRider()">Search</button>
 
-    <div id="rider-results" style="margin-top: 1rem;"></div>
+    <div id="rider-results"></div>
 
-    <a href="dashboard.html" class="btn" style="margin-top:1rem; display:inline-block;">Back to Dashboard</a>
+    <a href="dashboard.html" class="btn back-btn">Back to Dashboard</a>
   </div>
 
   <script>
     async function searchRider() {
       const username = document.getElementById('rider-search').value.trim();
+      const resultsDiv = document.getElementById('rider-results');
+
       if (!username) {
         alert('Please enter a username');
         return;
       }
 
-      const resultsDiv = document.getElementById('rider-results');
       resultsDiv.innerHTML = 'Loading...';
 
       try {
@@ -68,7 +113,7 @@
           return;
         }
 
-        let html = `<h3>Rider: ${data.rider.username} (ID: ${data.rider.id})</h3>`;
+        let html = `<h3 style="color: #333;">Rider: ${data.rider.username} (ID: ${data.rider.id})</h3>`;
         html += `<p><strong>Total Rides:</strong> ${data.total_rides}</p>`;
         html += `<p><strong>Current Credits:</strong> $${parseFloat(data.credits).toFixed(2)}</p>`;
 
