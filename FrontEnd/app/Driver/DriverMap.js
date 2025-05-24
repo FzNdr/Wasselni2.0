@@ -16,13 +16,22 @@ const DriverMap = () => {
   const [riders, setRiders] = useState([]);
 
   useEffect(() => {
+    let intervalId;
+
     (async () => {
+      const user_id = await AsyncStorage.getItem('user_id');
+      if (!user_id) {
+        console.warn('No user_id found in storage — redirecting to login.');
+        return;
+      }
+
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required.');
         return;
       }
 
+      // Send initial location
       const loc = await Location.getCurrentPositionAsync({});
       const coordsRegion = {
         latitude: loc.coords.latitude,
@@ -32,53 +41,78 @@ const DriverMap = () => {
       };
       setRegion(coordsRegion);
 
-      await sendDriverLocation(loc.coords);
+      await sendDriverLocation(loc.coords, user_id);
       await loadNearbyRiders(loc.coords);
+
+      // Start interval to update every 5 seconds
+      intervalId = setInterval(async () => {
+        try {
+          const loc = await Location.getCurrentPositionAsync({});
+          setRegion({
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+          });
+          await sendDriverLocation(loc.coords, user_id);
+          await loadNearbyRiders(loc.coords);
+        } catch (e) {
+          console.error('Interval location fetch error:', e);
+        }
+      }, 5000);
     })();
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
 
-  const sendDriverLocation = async ({ latitude, longitude }) => {
+  const sendDriverLocation = async ({ latitude, longitude }, user_id) => {
     try {
-      const driverId = await AsyncStorage.getItem('driverId');
-      if (!driverId) {
-        console.warn('No driverId found in storage.');
-        return;
-      }
+      console.log('Sending driver location:', { user_id, latitude, longitude });
 
-      console.log('Sending driver location:', { user_id: driverId, latitude, longitude });
-
-      const res = await fetch(
-        'http://10.0.2.2:8000/api/driver-locations/update',
+      const response = await fetch(
+        'http://10.0.2.2:8000/api/driver-locations/store',
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: driverId, latitude, longitude }),
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          body: JSON.stringify({ user_id, latitude, longitude }),
         }
       );
 
-      const text = await res.text();
-      console.log('Location API status:', res.status, text);
-    } catch (err) {
-      console.error('Error updating driver location:', err);
+      const json = await response.json();
+      if (!response.ok) {
+        console.error('Driver-location API error:', json);
+      } else {
+        console.log('Driver-location API success:', json);
+      }
+    } catch (error) {
+      console.error('Error updating driver location:', error);
     }
   };
 
   const loadNearbyRiders = async ({ latitude, longitude }) => {
     try {
-      const res = await fetch('http://10.0.2.2:8000/api/rider-locations');
-      if (!res.ok) {
-        console.error('Fetch riders failed:', await res.text());
-        return;
-      }
-      const data = await res.json();
+      const response = await fetch('http://10.0.2.2:8000/api/rider-locations', {
+        headers: { 'Accept': 'application/json' }
+      });
+      const list = await response.json();
+      console.log('Rider fetch response:', list);
 
-      const nearby = data.filter(r =>
-        getDistance(
-          latitude, longitude,
-          parseFloat(r.latitude),
-          parseFloat(r.longitude)
-        ) <= 2
-      );
+      const nearby = Array.isArray(list)
+        ? list.filter(r =>
+            getDistance(
+              latitude,
+              longitude,
+              parseFloat(r.latitude),
+              parseFloat(r.longitude)
+            ) <= 2
+          )
+        : [];
+
       setRiders(nearby);
     } catch (err) {
       console.error('Error fetching riders:', err);
@@ -87,13 +121,14 @@ const DriverMap = () => {
 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const toRad = v => (v * Math.PI) / 180;
-    const R = 6371; // km
+    const R = 6371;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
     const a =
-      Math.sin(dLat/2)**2 +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-      Math.sin(dLon/2)**2;
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
@@ -128,10 +163,11 @@ const DriverMap = () => {
       )}
 
       <View style={styles.listContainer}>
-        <Text style={styles.header}>Nearby Riders (within 2km)</Text>
+        <Text style={styles.header}>Nearby Riders (within 2 km)</Text>
         <FlatList
           data={riders}
           keyExtractor={item => item.id.toString()}
+          ListEmptyComponent={<Text>No riders nearby.</Text>}
           renderItem={({ item }) => (
             <View style={styles.row}>
               <View style={styles.info}>

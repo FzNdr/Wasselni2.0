@@ -43,7 +43,7 @@ Route::get('/users/{id}/credits', [UserController::class, 'getCredits']);
 
 
 Route::get('/rider-locations', [RiderLocationController::class, 'index']);
-Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
+Route::post('/rider-locations-store', [RiderLocationController::class, 'store']);
 Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
 
     // Driver Locations
@@ -84,3 +84,7 @@ Route::post('/rider-locations/update', [RiderLocationController::class, 'updateL
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::get('/feedback', [FeedbackController::class, 'index']); 
 
+
+Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
+Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
+Route::get('/rider-locations', [RiderLocationController::class, 'index']);

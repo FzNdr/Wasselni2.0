@@ -9,6 +9,7 @@ class DriverLocation extends Model
 {
     use HasFactory;
     protected $table = 'driver_locations';
+    public $timestamps = true;
 
     protected $fillable = [
         'user_id',

@@ -51,7 +51,7 @@ const LoginScreen = () => {
 
       if (data.token && data.user) {
         // store the user ID for later location updates
-        await AsyncStorage.setItem('userId', data.user.id.toString());
+       await AsyncStorage.setItem('user_id', data.user.id.toString());
 
         if (loginType.toLowerCase() === 'driver') {
           router.push('/Driver/DriverHomePage');

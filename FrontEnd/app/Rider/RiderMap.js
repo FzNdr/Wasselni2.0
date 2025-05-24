@@ -1,266 +1,150 @@
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
-import { Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const RiderMap = () => {
   const [region, setRegion] = useState(null);
-  const [pickupAddress, setPickupAddress] = useState('');
-  const [dropoffAddress, setDropoffAddress] = useState('');
-  const [dropoffLocation, setDropoffLocation] = useState(null);
   const [drivers, setDrivers] = useState([]);
-  const [riderCoords, setRiderCoords] = useState(null);
+  const locationInterval = useRef(null);
 
   useEffect(() => {
-    const fetchLocation = async () => {
+    (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required.');
         return;
       }
 
-      const userLocation = await Location.getCurrentPositionAsync({});
-      const coords = {
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
+      const loc = await Location.getCurrentPositionAsync({});
+      const coordsRegion = {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       };
-      setRegion(coords);
-      setRiderCoords(userLocation.coords);
+      setRegion(coordsRegion);
 
-      const address = await Location.reverseGeocodeAsync(userLocation.coords);
-      if (address && address.length > 0) {
-        const formatted = formatAddress(address[0]);
-        setPickupAddress(formatted || 'Unknown Location');
+      await sendRiderLocation(loc.coords);
+      await loadNearbyDrivers(loc.coords);
+
+      locationInterval.current = setInterval(async () => {
+        try {
+          const updatedLoc = await Location.getCurrentPositionAsync({});
+          await sendRiderLocation(updatedLoc.coords);
+          await loadNearbyDrivers(updatedLoc.coords);
+        } catch (err) {
+          console.error('Interval Location Error:', err);
+        }
+      }, 5000);
+    })();
+
+    return () => {
+      if (locationInterval.current) {
+        clearInterval(locationInterval.current);
       }
-
-      await updateRiderLocation(userLocation.coords);
-      await fetchNearbyDrivers(userLocation.coords);
     };
-
-    fetchLocation();
   }, []);
 
- const updateRiderLocation = async ({ latitude, longitude }) => {
-  try {
-    const token = await AsyncStorage.getItem('userToken');
-    const userId = await AsyncStorage.getItem('userId');  // match your key here
+  const sendRiderLocation = async ({ latitude, longitude }) => {
+    try {
+      const user_id = await AsyncStorage.getItem('user_id');
+      if (!user_id) {
+        console.warn('No user_id found in storage.');
+        return;
+      }
 
-    if (!token || !userId) {
-      console.warn('Missing token or userId in AsyncStorage');
-      return;
+      console.log('Sending rider location:', { user_id, latitude, longitude });
+      const res = await fetch('http://10.0.2.2:8000/api/rider-locations/store', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id, latitude, longitude }),
+      });
+
+      const text = await res.text();
+      console.log('Rider-location API status:', res.status, text);
+    } catch (err) {
+      console.error('Error updating rider location:', err);
     }
+  };
 
-    const response = await fetch('http://10.0.2.2:8000/api/rider-locations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user_id: userId,
-        latitude,
-        longitude,
-      }),
-    });
+  const loadNearbyDrivers = async ({ latitude, longitude }) => {
+    try {
+      const res = await fetch('http://10.0.2.2:8000/api/driver-locations');
+      const json = await res.json();
+      console.log('Raw driver fetch response:', json);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Failed to update rider location:', errorText);
-    } else {
-      const resData = await response.json();
-      console.log('Rider location updated:', resData);
-    }
-  } catch (error) {
-    console.error('Error updating rider location:', error);
-  }
-};
+      const list = Array.isArray(json.driverLocations) ? json.driverLocations : [];
 
-
-
-
-  const fetchNearbyDrivers = async ({ latitude, longitude }) => {
-  try {
-    const response = await fetch('http://10.0.2.2:8000/api/driver-locations', {
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Failed to fetch drivers:', errorText);
-      return;
-    }
-
-    const jsonResponse = await response.json();
-    const driversData = jsonResponse.driverLocations || [];
-
-    const nearby = driversData.filter((driver) => {
-      const distance = getDistanceFromLatLonInKm(
-        latitude,
-        longitude,
-        parseFloat(driver.latitude),
-        parseFloat(driver.longitude)
+      const nearby = list.filter(d =>
+        getDistance(latitude, longitude, parseFloat(d.latitude), parseFloat(d.longitude)) <= 2
       );
-      return distance <= 2;
-    });
+      setDrivers(nearby);
+    } catch (err) {
+      console.error('Error fetching drivers:', err);
+    }
+  };
 
-    setDrivers(nearby);
-  } catch (error) {
-    console.error('Error fetching drivers:', error.message);
-  }
-};
-
-
-
-  const getDistanceFromLatLonInKm = (lat1, lon1, lat2, lon2) => {
-    const toRad = (value) => (value * Math.PI) / 180;
-    const R = 6371; // Earth radius in KM
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const toRad = v => (v * Math.PI) / 180;
+    const R = 6371;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
     const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  const formatAddress = (address) => {
-    if (!address) return '';
-    const parts = [address.name, address.street, address.city].filter(
-      (part) =>
-        part &&
-        typeof part === 'string' &&
-        !part.startsWith('RG') &&
-        part.toLowerCase() !== 'null'
-    );
-    return parts.join(', ');
-  };
-
-  const handleMapPress = async (e) => {
-    const { latitude, longitude } = e.nativeEvent.coordinate;
-    setDropoffLocation({ latitude, longitude });
-
-    const addressList = await Location.reverseGeocodeAsync({ latitude, longitude });
-    if (addressList.length > 0) {
-      const formatted = formatAddress(addressList[0]);
-      setDropoffAddress(formatted || 'Unknown Location');
-    }
-  };
-const handleRequestRide = async (driver) => {
-  if (!dropoffAddress) {
-    Alert.alert('Select Destination', 'Please tap on the map to select your drop-off location.');
-    return;
-  }
-
-  Alert.alert(
-    'Request Ride',
-    `Confirm ride from:\nPickup: ${pickupAddress}\nDrop-off: ${dropoffAddress}\nDriver: ${driver.name}`,
-    [
+  const requestRide = driver => {
+    Alert.alert('Request Ride', `Request a ride from ${driver.name}?`, [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Confirm',
-        onPress: async () => {
-          try {
-            const token = await AsyncStorage.getItem('userToken');
-            const rider_id = await AsyncStorage.getItem('userId'); // Get rider id
-
-            if (!rider_id) {
-              Alert.alert('Error', 'User not logged in or no user ID found.');
-              return;
-            }
-
-            const response = await fetch('http://10.0.2.2:8000/api/ride-requests', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-              },
-              body: JSON.stringify({
-                rider_id: rider_id,             // Add rider_id here
-                pickup_latitude: riderCoords.latitude,
-                pickup_longitude: riderCoords.longitude,
-                dropoff_latitude: dropoffLocation.latitude,
-                dropoff_longitude: dropoffLocation.longitude,
-                driver_id: driver.id,
-              }),
-            });
-
-            if (!response.ok) {
-              const errorText = await response.text();
-              throw new Error(`Failed to request ride: ${errorText}`);
-            }
-
-            const data = await response.json();
-            console.log('Ride request response:', data);
-            Alert.alert('Success', 'Ride requested successfully.');
-            // Clear dropoff or update UI here if needed
-
-          } catch (error) {
-            Alert.alert('Error', error.message);
-          }
-        },
-      },
-    ]
-  );
-};
-
+      { text: 'Confirm', onPress: () => console.log(`Requested from ${driver.name}`) },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={region}
-        showsUserLocation={true}
-        onPress={handleMapPress}
-      >
-        {dropoffLocation && (
-          <Marker
-            coordinate={dropoffLocation}
-            title="Dropoff"
-            description={dropoffAddress || 'Drop-off location'}
-            pinColor="green"
-          />
-        )}
+      {region && (
+        <MapView style={styles.map} region={region} showsUserLocation>
+          {drivers.map(d => (
+            <Marker
+              key={d.id}
+              coordinate={{
+                latitude: parseFloat(d.latitude),
+                longitude: parseFloat(d.longitude),
+              }}
+              title={d.name}
+              description="Driver Nearby"
+              pinColor="blue"
+            />
+          ))}
+        </MapView>
+      )}
 
-        {drivers.map((driver) => (
-          <Marker
-            key={driver.id}
-            coordinate={{
-              latitude: parseFloat(driver.latitude),
-              longitude: parseFloat(driver.longitude),
-            }}
-            title={driver.name}
-            description={`Car: ${driver.car_brand}, Seats: ${driver.available_seats}`}
-            pinColor="blue"
-          />
-        ))}
-      </MapView>
-
-      <View style={styles.tableContainer}>
-        <Text style={styles.locationText}>📍 Pickup: {pickupAddress}</Text>
-        <Text style={styles.locationText}>🎯 Drop-off: {dropoffAddress || 'Tap on the map to select.'}</Text>
-
-        <Text style={styles.tableHeader}>Nearby Drivers (within 2KM)</Text>
+      <View style={styles.listContainer}>
+        <Text style={styles.header}>Nearby Drivers (within 2km)</Text>
         <FlatList
           data={drivers}
-          keyExtractor={(item) => item.id.toString()}
+          keyExtractor={item => item.id.toString()}
+          ListEmptyComponent={<Text>No drivers nearby.</Text>}
           renderItem={({ item }) => (
-            <View style={styles.tableRow}>
-              <View style={styles.driverInfo}>
+            <View style={styles.row}>
+              <View style={styles.info}>
                 <Text>Name: {item.name}</Text>
-                <Text>Car: {item.car_brand}</Text>
-                <Text>Seats: {item.available_seats}</Text>
-                <Text>Price: ${item.price_per_km}/km</Text>
                 <Text>Phone: {item.phone_number}</Text>
-                <Text>Points: {item.reward_points}</Text>
               </View>
               <TouchableOpacity
-                style={styles.requestButton}
-                onPress={() => handleRequestRide(item)}
+                style={styles.button}
+                onPress={() => requestRide(item)}
               >
                 <Text style={styles.buttonText}>Request Ride</Text>
               </TouchableOpacity>
@@ -276,41 +160,39 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   map: {
     flex: 2,
-    marginTop: '7%',
     margin: '2%',
     borderRadius: 15,
     overflow: 'hidden',
   },
-  tableContainer: {
+  listContainer: {
     flex: 1,
-    padding: 10,
     margin: '5%',
-    borderRadius: 15,
+    padding: 10,
     backgroundColor: '#fff',
+    borderRadius: 15,
   },
-  tableHeader: {
+  header: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginVertical: 10,
+    marginBottom: 10,
   },
-  tableRow: {
+  row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  driverInfo: { flex: 3 },
-  requestButton: {
+  info: { flex: 3 },
+  button: {
     flex: 1,
-    backgroundColor: '#007BFF',
-    padding: 10,
+    backgroundColor: '#007bff',
     borderRadius: 5,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 8,
   },
   buttonText: { color: '#fff', fontWeight: 'bold' },
-  locationText: { fontSize: 14, marginBottom: 5 },
 });
 
 export default RiderMap;
