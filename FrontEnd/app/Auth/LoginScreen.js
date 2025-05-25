@@ -22,7 +22,7 @@ const LoginScreen = () => {
   const [loginType, setLoginType] = useState('Rider');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-
+   //handlelogin function to send data to database
   const handleLogin = async () => {
     if (!username || !password) {
       Alert.alert('Missing Fields', 'Please fill in all the required fields.');
@@ -50,7 +50,7 @@ const LoginScreen = () => {
       console.log('Response data:', data);
 
       if (data.token && data.user) {
-        // store the user ID for later location updates
+        // store the user_id and navigation based on user role
        await AsyncStorage.setItem('user_id', data.user.id.toString());
 
         if (loginType.toLowerCase() === 'driver') {
@@ -66,7 +66,7 @@ const LoginScreen = () => {
       console.error('Fetch error:', error);
     }
   };
-
+//styling
   const themeStyles = {
     backgroundColor: isDarkMode ? '#121212' : '#f5f5f5',
     textColor: isDarkMode ? '#FFFFFF' : '#1c1c1c',
@@ -80,7 +80,7 @@ const LoginScreen = () => {
     buttonRadius: 8,
     buttonFontSize: 18,
   };
-
+//form
   return (
     <View style={[styles.container, { backgroundColor: themeStyles.backgroundColor }]}>
       <View style={styles.formToggleWrapper}>

@@ -17,7 +17,7 @@ if (empty($username)) {
 
 $usernameEsc = $mysqli->real_escape_string($username);
 
-// Find driver by username, checking role = 'driver'
+// Find driver by username with role = 'driver'
 $driverQuery = "
     SELECT id, username
     FROM users

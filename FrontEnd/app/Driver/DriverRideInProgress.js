@@ -18,7 +18,6 @@ import { useRouter } from 'expo-router';
 const DriverRideInProgress = () => {
   const router = useRouter();
 
-  // Extract parameters from URL query strings (they are strings, so parse floats)
   const riderLocation = params.riderLocation
     ? JSON.parse(params.riderLocation)
     : null;
@@ -28,9 +27,7 @@ const DriverRideInProgress = () => {
   const rideId = params.rideId || null;
   const paymentMethod = params.paymentMethod || null;
 
-  // TODO: You also need driverUserId and riderUserId here for feedback — 
-  // get them from params or app context accordingly.
-  // For now, I leave placeholders:
+  
   const driverUserId = params.driverUserId || 'driverUserId_placeholder';
   const riderUserId = params.riderUserId || 'riderUserId_placeholder';
 
@@ -82,7 +79,7 @@ const DriverRideInProgress = () => {
       if (response.ok) {
         Alert.alert('Thank You', 'Your feedback has been submitted.');
         setModalVisible(false);
-        router.back();  // navigate back using expo-router
+        router.back();  // navigate back 
       } else {
         Alert.alert('Error', data.message || 'Failed to submit feedback.');
       }

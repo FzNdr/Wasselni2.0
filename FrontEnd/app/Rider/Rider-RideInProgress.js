@@ -51,8 +51,8 @@ const RiderRideInProgress = ({ route, navigation }) => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from_user_id: riderUserId,  // Set this in each screen
-        to_user_id: driverUserId,     // Set this in each screen
+        from_user_id: riderUserId,  
+        to_user_id: driverUserId,     
         ride_id: rideId,
         rating,
         comment: feedback,

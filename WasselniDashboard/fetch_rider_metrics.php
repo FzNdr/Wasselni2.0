@@ -17,7 +17,7 @@ if (empty($username)) {
 
 $usernameEsc = $mysqli->real_escape_string($username);
 
-// Find rider by username, checking role = 'rider'
+// Find rider by username with  role = 'rider'
 $riderQuery = "
     SELECT id, username
     FROM users

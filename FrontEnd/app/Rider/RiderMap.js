@@ -13,6 +13,8 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+const API_BASE = 'http://10.0.2.2:8000/api';
+
 const RiderMap = () => {
   const [region, setRegion] = useState(null);
   const [drivers, setDrivers] = useState([]);
@@ -20,8 +22,12 @@ const RiderMap = () => {
   const [modalStage, setModalStage] = useState('loading'); // 'loading', 'counter', 'final'
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [counterOffer, setCounterOffer] = useState(null);
-  const locationInterval = useRef(null);
+  const [rideRequestId, setRideRequestId] = useState(null);
 
+  const locationInterval = useRef(null);
+  const responseInterval = useRef(null);
+
+  // INITIALIZE LOCATION & FETCH DRIVERS
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -54,16 +60,17 @@ const RiderMap = () => {
     })();
 
     return () => {
-      if (locationInterval.current) clearInterval(locationInterval.current);
+      clearInterval(locationInterval.current);
     };
   }, []);
 
+  // UPDATE RIDER LOCATION TO BACKEND
   const updateRiderLocation = async ({ latitude, longitude }) => {
     try {
       const user_id = await AsyncStorage.getItem('user_id');
-      if (!user_id) return console.warn('User ID missing in AsyncStorage');
+      if (!user_id) return;
 
-      await fetch('http://10.0.2.2:8000/api/rider-locations/store', {
+      await fetch(`${API_BASE}/rider-locations/store`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id, latitude, longitude }),
@@ -73,27 +80,27 @@ const RiderMap = () => {
     }
   };
 
+  // FETCH DRIVERS FROM BACKEND & FILTER BY DISTANCE
   const fetchNearbyDrivers = async ({ latitude, longitude }) => {
     try {
-      const response = await fetch('http://10.0.2.2:8000/api/driver-locations');
+      const response = await fetch(`${API_BASE}/driver-locations`);
       const data = await response.json();
-      const driverList = Array.isArray(data.driverLocations) ? data.driverLocations : [];
-
-      const nearbyDrivers = driverList.filter(driver =>
+      const list = Array.isArray(data.driverLocations) ? data.driverLocations : [];
+      const nearby = list.filter(d =>
         calculateDistance(
           latitude,
           longitude,
-          parseFloat(driver.latitude),
-          parseFloat(driver.longitude)
+          parseFloat(d.latitude),
+          parseFloat(d.longitude)
         ) <= 2
       );
-
-      setDrivers(nearbyDrivers);
+      setDrivers(nearby);
     } catch (error) {
       console.error('Error fetching nearby drivers:', error);
     }
   };
 
+  // DISTANCE CALCULATION (KM)
   const calculateDistance = (lat1, lon1, lat2, lon2) => {
     const toRad = val => (val * Math.PI) / 180;
     const R = 6371;
@@ -106,28 +113,75 @@ const RiderMap = () => {
     return R * c;
   };
 
-  const requestRide = driver => {
+  // REQUEST RIDE: POST + START POLLING
+  const requestRide = async (driver) => {
     setSelectedDriver(driver);
     setModalStage('loading');
     setCounterOffer(null);
     setModalVisible(true);
 
-    setTimeout(() => {
-      const responses = ['accept', 'deny', 'counter'];
-      const choice = responses[Math.floor(Math.random() * responses.length)];
-
-      if (choice === 'accept' || choice === 'deny') {
-        setModalStage('final');
-        setCounterOffer(null);
+    try {
+      const rider_id = await AsyncStorage.getItem('user_id');
+      const res = await fetch(`${API_BASE}/ride-requests`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          rider_id,
+          driver_id: driver.id,
+          pickup_latitude: region.latitude,
+          pickup_longitude: region.longitude,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRideRequestId(json.data.id);
+        responseInterval.current = setInterval(() => {
+          fetchIncomingRideResponses(rider_id, json.data.id);
+        }, 3000);
       } else {
-        setModalStage('counter');
-        setCounterOffer({
-          amount: (Math.random() * 10 + 5).toFixed(2),
-          currency: '$',
-        });
+        Alert.alert('Error', json.message || 'Failed to request ride.');
+        setModalVisible(false);
       }
-    }, 3000);
+    } catch (err) {
+      console.error(err);
+      Alert.alert('Network Error', 'Could not send ride request.');
+      setModalVisible(false);
+    }
   };
+
+  // POLL FOR DRIVER RESPONSE
+  const fetchIncomingRideResponses = async (rider_id, request_id) => {
+    try {
+      const resp = await fetch(
+        `${API_BASE}/ride-requests/incoming?rider_id=${rider_id}`
+      );
+      const data = await resp.json();
+      if (data.success && Array.isArray(data.requests)) {
+        const match = data.requests.find(r => r.id === request_id);
+        if (!match) return;
+
+        if (match.status === 'accepted' || match.status === 'denied') {
+          clearInterval(responseInterval.current);
+          setModalStage('final');
+        } else if (match.status === 'countered') {
+          clearInterval(responseInterval.current);
+          setCounterOffer({ amount: match.counter_fare.toFixed(2), currency: '$' });
+          setModalStage('counter');
+        }
+      }
+    } catch (err) {
+      console.error('Error polling ride response:', err);
+    }
+  };
+
+  // CLEAN UP WHEN MODAL CLOSES
+  useEffect(() => {
+    if (!modalVisible) {
+      clearInterval(responseInterval.current);
+      setRideRequestId(null);
+      resetModal();
+    }
+  }, [modalVisible]);
 
   const resetModal = () => {
     setSelectedDriver(null);
@@ -135,33 +189,31 @@ const RiderMap = () => {
     setModalStage('loading');
   };
 
+  // HANDLERS
   const onAcceptCounter = () => {
     setModalVisible(false);
     Alert.alert(
       'Counter Offer Accepted',
       `You accepted the counter offer of ${counterOffer.currency}${counterOffer.amount} from ${selectedDriver.name}.`
     );
-    resetModal();
   };
 
   const onDenyCounter = () => {
     setModalVisible(false);
     Alert.alert('Counter Offer Denied', `You denied the counter offer from ${selectedDriver.name}.`);
-    resetModal();
   };
 
   const onAccept = () => {
     setModalVisible(false);
     Alert.alert('Ride Accepted', `You accepted the ride from ${selectedDriver.name}.`);
-    resetModal();
   };
 
   const onDeny = () => {
     setModalVisible(false);
     Alert.alert('Ride Denied', `You denied the ride from ${selectedDriver.name}.`);
-    resetModal();
   };
 
+  // RENDER
   return (
     <View style={styles.container}>
       {region ? (
@@ -206,7 +258,6 @@ const RiderMap = () => {
         />
       </View>
 
-      {/* Modal */}
       <Modal transparent visible={modalVisible} animationType="fade">
         <View style={styles.modalBackground}>
           <View style={styles.modalContainer}>
@@ -222,8 +273,7 @@ const RiderMap = () => {
               <>
                 <Text style={styles.modalTitle}>Counter Offer from {selectedDriver?.name}</Text>
                 <Text style={styles.modalMessage}>
-                  Driver offers: {counterOffer.currency}
-                  {counterOffer.amount}
+                  Driver offers: {counterOffer.currency}{counterOffer.amount}
                 </Text>
                 <View style={styles.modalButtonsRow}>
                   <TouchableOpacity style={styles.acceptButton} onPress={onAcceptCounter}>
@@ -260,89 +310,21 @@ const RiderMap = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  map: {
-    flex: 2,
-    margin: '2%',
-    borderRadius: 15,
-    overflow: 'hidden',
-  },
-  loadingContainer: {
-    flex: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  listContainer: {
-    flex: 1,
-    margin: '5%',
-    padding: 10,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-  },
-  header: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
+  map: { flex: 2, margin: '2%', borderRadius: 15, overflow: 'hidden' },
+  loadingContainer: { flex: 2, justifyContent: 'center', alignItems: 'center' },
+  listContainer: { flex: 1, margin: '5%', padding: 10, backgroundColor: '#fff', borderRadius: 15 },
+  header: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#ccc' },
   info: { flex: 3 },
-  button: {
-    flex: 1,
-    backgroundColor: '#007bff',
-    borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 8,
-  },
+  button: { flex: 1, backgroundColor: '#007bff', borderRadius: 5, justifyContent: 'center', alignItems: 'center', padding: 8 },
   buttonText: { color: '#fff', fontWeight: 'bold' },
-  modalBackground: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContainer: {
-    width: '85%',
-    padding: 20,
-    backgroundColor: '#fff',
-    borderRadius: 15,
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  modalMessage: {
-    fontSize: 16,
-    marginVertical: 10,
-    textAlign: 'center',
-  },
-  modalButtonsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '100%',
-  },
-  acceptButton: {
-    backgroundColor: 'green',
-    padding: 10,
-    borderRadius: 8,
-    minWidth: '40%',
-    alignItems: 'center',
-  },
-  denyButton: {
-    backgroundColor: 'red',
-    padding: 10,
-    borderRadius: 8,
-    minWidth: '40%',
-    alignItems: 'center',
-  },
+  modalBackground: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center', alignItems: 'center' },
+  modalContainer: { width: '85%', padding: 20, backgroundColor: '#fff', borderRadius: 15, alignItems: 'center' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10, textAlign: 'center' },
+  modalMessage: { fontSize: 16, marginVertical: 10, textAlign: 'center' },
+  modalButtonsRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%' },
+  acceptButton: { backgroundColor: 'green', padding: 10, borderRadius: 8, minWidth: '40%', alignItems: 'center' },
+  denyButton: { backgroundColor: 'red', padding: 10, borderRadius: 8, minWidth: '40%', alignItems: 'center' },
 });
 
 export default RiderMap;

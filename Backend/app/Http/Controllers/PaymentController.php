@@ -10,18 +10,18 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    // Process cash payment and log it
+   
     public function payWithCash(Request $request)
     {
         $user = $request->user();
 
-        // You can add validation for ride ID, amount etc.
+       
         $data = $request->validate([
             'ride_id' => 'required|integer',
             'amount' => 'required|numeric',
         ]);
 
-        // Log payment as cash
+       
         $payment = Payment::create([
             'ride_id' => $data['ride_id'],
             'payer_id' => $user->id,
@@ -33,7 +33,7 @@ class PaymentController extends Controller
         return response()->json(['message' => 'Cash payment recorded', 'payment' => $payment]);
     }
 
-    // Use in-app credits to pay
+    
     public function payWithCredits(Request $request)
     {
         $user = $request->user();
@@ -50,11 +50,11 @@ class PaymentController extends Controller
                 return response()->json(['error' => 'Insufficient credits'], 400);
             }
 
-            // Deduct credits from rider
+            
             $user->credits -= $data['amount'];
             $user->save();
 
-            // TODO: Add credits to driver (you might need to find the driver from ride_id)
+            // TODO Add credits to driver 
 
             // Log payment as credits
             $payment = Payment::create([

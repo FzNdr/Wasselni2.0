@@ -27,7 +27,7 @@ const DriverHomePage = () => {
 
       const now = new Date();
 
-      // Filter to driver promotions active right now
+      // filtering of active driver promos
       const activedriverPromos = data.filter(promo => {
         const startDate = new Date(promo.start_date);
         const endDate = new Date(promo.end_date);

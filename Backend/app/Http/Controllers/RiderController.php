@@ -14,7 +14,7 @@ class RiderController extends Controller
 {
     $latitude = $request->input('latitude');
     $longitude = $request->input('longitude');
-    $radius = 2; // km
+    $radius = 2; // in kilomtr
 
     if (!$latitude || !$longitude) {
         return response()->json(['error' => 'Latitude and longitude are required.'], 422);
@@ -52,7 +52,6 @@ class RiderController extends Controller
             'first_name' => 'string|max:255',
             'last_name' => 'string|max:255',
             'phone_number' => 'string|max:255',
-            // Add other fields if needed
         ]);
 
         $user->update($data);

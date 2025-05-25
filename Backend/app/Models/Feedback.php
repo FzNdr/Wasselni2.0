@@ -9,19 +9,15 @@ class Feedback extends Model
 {
     use HasFactory;
 
-    // The table name (optional if follows Laravel convention)
     protected $table = 'feedback';
 
-    // The attributes that are mass assignable
     protected $fillable = [
         'user_id',
         'rating',
         'comment',
     ];
 
-    // Relationships
 
-    // Feedback belongs to a user
     public function user()
     {
         return $this->belongsTo(User::class);

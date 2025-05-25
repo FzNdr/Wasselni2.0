@@ -27,7 +27,7 @@ const RiderHomePage = () => {
 
       const now = new Date();
 
-      // Filter to rider promotions active right now
+      // get active promos for riders
       const activeRiderPromos = data.filter(promo => {
         const startDate = new Date(promo.start_date);
         const endDate = new Date(promo.end_date);

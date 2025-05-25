@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/RiderLocationController.php
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -28,7 +27,7 @@ class RiderLocationController extends Controller
 
     public function updateLocation(Request $request)
     {
-        return $this->store($request); // reuse same logic
+        return $this->store($request); 
     }
 
     public function index(Request $request)

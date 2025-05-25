@@ -13,7 +13,7 @@ const ProfileScreen = () => {
   };
 
   const handleRidesHistoryPress = () => {
-    router.push('Profile/RideHistoryScreen'); // adjust if your route is different
+    router.push('Profile/RideHistoryScreen'); 
   };
 
   const renderUserDetails = () => {
@@ -64,7 +64,7 @@ const ProfileScreen = () => {
       <Text style={styles.role}>Role: {userRole || 'Guest'}</Text>
       {renderUserDetails()}
 
-      {/* New Rides History Button */}
+      {/*  Rides History Button */}
       <View style={styles.buttonContainer}>
         <Button title="Rides History" onPress={handleRidesHistoryPress} />
       </View>

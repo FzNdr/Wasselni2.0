@@ -30,7 +30,7 @@ if ($method === 'POST') {
             respond(['error' => 'Missing required fields'], 400);
         }
 
-        // Check username uniqueness
+        // Check username if unique
         $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
         $stmt->execute([$username]);
         if ($stmt->fetch()) {
@@ -69,7 +69,7 @@ if ($method === 'POST') {
             respond(['error' => 'Invalid username or password'], 401);
         }
 
-        // For simplicity, no token system here — in production, return JWT or session token.
+        
         unset($user['password']);
         respond(['message' => 'Login successful', 'user' => $user]);
     }

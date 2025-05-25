@@ -11,7 +11,6 @@ class RideRequest extends Model
 
     protected $table = 'ride_requests';
 
-    // Mass assignable fields
    
         protected $fillable = [
     'rider_id',
@@ -23,16 +22,13 @@ class RideRequest extends Model
     'driver_id',
     'fare',
     'counter_fare',
-    // optional fare price
     ];
 
-    // Relationship to Rider (User)
     public function rider()
     {
         return $this->belongsTo(User::class, 'rider_id');
     }
 
-    // Relationship to Driver (User)
     public function driver()
     {
         return $this->belongsTo(User::class, 'driver_id');

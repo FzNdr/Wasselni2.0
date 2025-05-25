@@ -16,7 +16,7 @@ import {
   useColorScheme,
 } from 'react-native';
 import FormToggle from '../../components/FormToggle';
-
+//registration fields 
 const RegisterScreen = () => {
   const router = useRouter();
   const colorScheme = useColorScheme();
@@ -35,7 +35,7 @@ const RegisterScreen = () => {
   const [vehicleType, setVehicleType] = useState('SUV');
   const [totalSeats, setTotalSeats] = useState('');
   const [photo, setPhoto] = useState(null);
-
+//styling
   const theme = {
     background: isDarkMode ? '#121212' : '#f5f5f5',
     text: isDarkMode ? '#fff' : '#1c1c1c',
@@ -109,7 +109,7 @@ response = await fetch('http://10.0.2.2:8000/api/driver-register', {
 });
 console.log(response)
       } else {
-        // Rider registration payload
+        // Rider registration data
         const payload = {
           registrationType,
           username,
@@ -129,16 +129,14 @@ console.log(response)
       }
 
       const contentType = response.headers.get('Content-Type');
-      // if (!contentType || !contentType.includes('application/json')) {
-      //   throw new Error('Invalid response format. Expected JSON. h ih i');
-      // }
+     
 
       const data = await response.json();
 console.log('Response data:', data);
 
       if (response.ok) {
         Alert.alert('Success', 'Registration successful!');
-        // Redirect based on registration type (case insensitive check)
+        // Redirect based on registration type 
         if (registrationType.toLowerCase() === 'driver') {
           router.push('/Driver/DriverHomePage');
         } else {

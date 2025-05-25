@@ -81,7 +81,7 @@ Route::get('/ride/fare', [RideRequestController::class, 'getFare']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::get('/feedback', [FeedbackController::class, 'index']); 
 
-
+// store and update rider locations apis
 Route::post('/rider-locations/store', [RiderLocationController::class, 'store']);
 Route::post('/rider-locations/update', [RiderLocationController::class, 'updateLocation']);
 Route::get('/rider-locations', [RiderLocationController::class, 'index']);

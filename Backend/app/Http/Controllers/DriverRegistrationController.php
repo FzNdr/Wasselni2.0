@@ -16,7 +16,7 @@ class DriverRegistrationController extends Controller
         DB::beginTransaction();
 
         try {
-            // Step 1: Create User
+            // Create User
             $user = User::create([
     'username' => $request->username,
     'first_name' => $request->firstName,
@@ -28,13 +28,13 @@ class DriverRegistrationController extends Controller
 ]);
 
 
-            // Step 2: Handle photo upload
+            //  photo upload
             $photoPath = null;
             if ($request->hasFile('photo')) {
                 $photoPath = $request->file('photo')->store('driver_photos', 'public');
             }
 
-            // Step 3: Create Driver Application
+            // Create Driver Application
             DriverApplication::create([
                 'user_id' => $user->id,
                 'driving_license' => $request->driving_license,

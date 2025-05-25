@@ -25,7 +25,7 @@ class Ride extends Model
         return $this->hasMany(Payment::class, 'ride_request_id');
     }
     function calculateDistanceKm($lat1, $lon1, $lat2, $lon2) {
-    $earthRadius = 6371; // Earth radius in km
+    $earthRadius = 6371;
 
     $dLat = deg2rad($lat2 - $lat1);
     $dLon = deg2rad($lon2 - $lon1);

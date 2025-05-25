@@ -141,7 +141,7 @@
   <div class="dashboard">
     <h2>Pending Driver Applications</h2>
 
-    <!-- Success or error message display -->
+    <!-- show success or error message for user -->
     <div id="message-container"></div>
 
     <table id="applications-table">
@@ -155,7 +155,7 @@
         </tr>
       </thead>
       <tbody>
-        <!-- Filled dynamically -->
+       
       </tbody>
     </table>
 
@@ -165,7 +165,7 @@
   </div>
 
   <script>
-    // Show success/error message from URL parameters (for form POST + redirect method)
+    // Show success/error message from URL parameters 
     function showMessageFromURL() {
       const params = new URLSearchParams(window.location.search);
       const container = document.getElementById('message-container');
@@ -176,7 +176,7 @@
         } else if (update === 'fail') {
           container.innerHTML = '<div class="message error">Failed to update application status.</div>';
         }
-        // Remove query params from URL to avoid message persisting after reload
+        // Remove query params from URL to avoid message staying after reload
         window.history.replaceState({}, document.title, window.location.pathname);
       }
     }

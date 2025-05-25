@@ -23,7 +23,7 @@ const DriverMap = () => {
   const [region, setRegion] = useState(null);
   const [riders, setRiders] = useState([]);
   const [rideRequestsQueue, setRideRequestsQueue] = useState([]); // queue of incoming ride requests
-  const [currentRequest, setCurrentRequest] = useState(null); // currently displayed ride request modal
+  const [currentRequest, setCurrentRequest] = useState(null); // current ride request
   const [counterFare, setCounterFare] = useState('');
   const [loadingAction, setLoadingAction] = useState(false);
 
@@ -58,7 +58,7 @@ const DriverMap = () => {
       await sendDriverLocation(loc.coords, user_id);
       await loadNearbyRiders(loc.coords);
 
-      // Start location update interval every 5 seconds
+      //  location update every 5 seconds
       intervalLocationRef.current = setInterval(async () => {
         try {
           const loc = await Location.getCurrentPositionAsync({});
@@ -75,12 +75,12 @@ const DriverMap = () => {
         }
       }, 5000);
 
-      // Start ride requests polling interval every 5 seconds
+      //  ride requests fetching  every 5 seconds
       intervalRequestsRef.current = setInterval(async () => {
         await fetchIncomingRideRequests(user_id);
       }, 5000);
 
-      // Also fetch immediately on mount
+      //  fetch immediately on entering page
       await fetchIncomingRideRequests(user_id);
     })();
 
@@ -108,7 +108,7 @@ const DriverMap = () => {
     }
   };
 
-  // Load nearby riders (within 2 km)
+  // Load nearby riders within 2 km
   const loadNearbyRiders = async ({ latitude, longitude }) => {
     try {
       const response = await fetch(`${API_BASE}/rider-locations`, {
@@ -134,7 +134,7 @@ const DriverMap = () => {
     }
   };
 
-  // Calculate distance between two coordinates (in KM)
+  // Calculate distance between two locations in km 
   const getDistance = (lat1, lon1, lat2, lon2) => {
     const toRad = v => (v * Math.PI) / 180;
     const R = 6371;
@@ -148,7 +148,7 @@ const DriverMap = () => {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   };
 
-  // Fetch incoming ride requests for the driver and add to queue
+  // get incoming ride requests for driver + add to queue
   const fetchIncomingRideRequests = async (driver_id) => {
     try {
       const response = await fetch(`${API_BASE}/ride-requests/incoming?driver_id=${driver_id}`, {
@@ -188,7 +188,7 @@ const DriverMap = () => {
     }
   };
 
-  // Accept the current ride request
+  // Accept current ride request
   const acceptRide = async () => {
     if (!currentRequest) return;
     setLoadingAction(true);
@@ -213,7 +213,7 @@ const DriverMap = () => {
     setLoadingAction(false);
   };
 
-  // Deny the current ride request
+  // Deny current ride request
   const denyRide = async () => {
     if (!currentRequest) return;
     setLoadingAction(true);
@@ -236,7 +236,7 @@ const DriverMap = () => {
     setLoadingAction(false);
   };
 
-  // Send counter offer for the current ride request
+  // Send counter offer for current ride request
   const sendCounterOffer = async () => {
     if (!currentRequest) return;
 

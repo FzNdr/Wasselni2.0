@@ -9,7 +9,7 @@ class PromotionController extends Controller
 {
   public function index(Request $request)
 {
-    $role = $request->query('role');  // e.g. 'driver' or 'rider'
+    $role = $request->query('role');  //driver or rider
     $now = now();
 
     $query = Promotion::query();

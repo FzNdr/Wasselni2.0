@@ -63,7 +63,7 @@ class DriverApplicationController extends Controller
             $application->update([
                 'status' => 'Approved',
                 'reviewed_at' => now(),
-                'reviewer_id' => null, // optional reviewer auth
+                'reviewer_id' => null, 
                 'user_id' => $user->id,
             ]);
 
@@ -92,7 +92,7 @@ class DriverApplicationController extends Controller
 
 public function index(Request $request)
 {
-    $user = $request->user();  // get currently authenticated user
+    $user = $request->user();  
 
     if (!$user) {
         return response()->json(['error' => 'Unauthorized'], 401);

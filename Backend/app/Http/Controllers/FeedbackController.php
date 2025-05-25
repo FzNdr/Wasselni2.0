@@ -18,11 +18,11 @@ class FeedbackController extends Controller
         'ride_completed' => 'required|boolean',
     ]);
 
-    // Determine user based on ride and type
+    // check user type 
     $ride = Ride::findOrFail($validated['ride_id']);
     $userId = $validated['user_type'] === 'rider' ? $ride->rider_id : $ride->driver_id;
 
-    // Create feedback entry
+    // Create feedback 
     Feedback::create([
         'user_id' => $userId,
         'rating' => $validated['rating'],

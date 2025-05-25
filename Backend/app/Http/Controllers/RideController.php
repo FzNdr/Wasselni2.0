@@ -16,14 +16,14 @@ class RideController extends Controller
         $this->wsClient = $wsClient;
     }
 
-    // List all rides (e.g., for admin dashboard)
+    // List all rides 
     public function index()
     {
         $rides = Ride::with('rider', 'driver')->orderByDesc('created_at')->get();
         return view('rides.index', compact('rides'));
     }
 
-    // Helper function to calculate distance between two points in km
+    //  function to calculate distance between two points
     private function calculateDistanceKm($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371; // km
@@ -39,7 +39,7 @@ class RideController extends Controller
         return $earthRadius * $c;
     }
 
-    // Update ride status and notify via WebSocket
+    // Update ride status
     public function updateRideStatus(Request $request, $rideId)
     {
         $validated = $request->validate([
@@ -49,9 +49,8 @@ class RideController extends Controller
 
         $ride = Ride::findOrFail($rideId);
 
-        // Only proceed to credits update if status changes to completed and wasn't completed before
+        //  proceed to credits update if status changed completed if not completed before
         if ($validated['status'] === 'completed' && $ride->status !== 'completed') {
-            // Decode pickup and dropoff locations assuming JSON stored as strings
             $pickup = json_decode($ride->pickup_location, true);
             $dropoff = json_decode($ride->dropoff_location, true);
 
@@ -69,7 +68,7 @@ class RideController extends Controller
                 $riderCredits = $distanceKm * 5;
                 $driverCredits = $distanceKm * 50;
 
-                // Update users' credits
+                // Update credits amount for users
                 $rider = User::find($ride->rider_id);
                 $driver = User::find($ride->driver_id);
 
