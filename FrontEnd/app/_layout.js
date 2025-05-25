@@ -13,6 +13,7 @@ export default function Layout() {
         <Stack.Screen name="Auth/LoginScreen" />
         <Stack.Screen name="Auth/RegisterScreen" />
         <Stack.Screen name="Driver/DriverMap" />
+        <Stack.Screen name="Driver/DriverRideInProgress" />
         <Stack.Screen name="Driver/DriverHomePage" />
         <Stack.Screen name="Rider/RiderMap" />
         <Stack.Screen name="Rider/RiderHomePage" />

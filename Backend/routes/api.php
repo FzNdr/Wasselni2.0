@@ -52,12 +52,13 @@ Route::post('/rider-locations/update', [RiderLocationController::class, 'updateL
     Route::get('/driver-locations', [DriverLocationController::class, 'index']);
 
     // Ride Requests (Rider-side)
-    Route::get('/ride-requests', [RideRequestController::class, 'index']);
-    Route::post('/ride-requests', [RideRequestController::class, 'store']);
-    Route::get('/ride-requests/{id}', [RideRequestController::class, 'show']);
-    Route::post('/ride-requests/{id}/cancel', [RideRequestController::class, 'cancel']);
-    Route::post('/ride/request', [RideRequestController::class, 'requestRide']);
-    Route::get('/ride/status/{rideId}', [RideRequestController::class, 'rideStatus']);
+     Route::post('/ride-requests', [RideRequestController::class, 'store']);
+Route::post('/ride-requests/{id}/accept', [RideRequestController::class, 'accept']);
+Route::post('ride-requests/{id}/deny', [RideRequestController::class, 'deny']);
+Route::post('/ride-requests/{id}/counter', [RideRequestController::class, 'counter']);
+Route::post('/ride-requests/confirm', [RideRequestController::class, 'confirmCounter']);
+Route::get('/ride-requests/incoming', [RideRequestController::class, 'incoming']);
+
 
     // Driver Applications
     Route::post('/driver-applications', [DriverApplicationController::class, 'store']);
@@ -74,11 +75,6 @@ Route::post('/rider-locations/update', [RiderLocationController::class, 'updateL
     Route::get('/driversnearby', [RiderLocationController::class, 'nearbyDrivers']);
     Route::get('/drivers/nearby-riders', [DriverLocationController::class, 'nearbyRiders']);
     Route::post('/nearby-drivers', [DriverLocationController::class, 'nearbyDrivers']);
-
-    // Driver Ride Requests (driver side)
-    Route::get('/driver/ride-requests', [RideRequestController::class, 'driverPendingRequests']);
-    Route::post('/driver/ride-requests/{id}/respond', [RideRequestController::class, 'respondToRequest']);
-
 
 //feedback 
     Route::post('/feedback', [FeedbackController::class, 'store']);

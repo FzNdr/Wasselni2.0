@@ -12,15 +12,18 @@ class RideRequest extends Model
     protected $table = 'ride_requests';
 
     // Mass assignable fields
-    protected $fillable = [
-        'rider_id',
-        'pickup_latitude',
-        'pickup_longitude',
-        'dropoff_latitude',
-        'dropoff_longitude',
-        'status',
-        'driver_id',  // optional if assigned later
-        'fare',       // optional fare price
+   
+        protected $fillable = [
+    'rider_id',
+    'pickup_latitude',
+    'pickup_longitude',
+    'dropoff_latitude',
+    'dropoff_longitude',
+    'status',
+    'driver_id',
+    'fare',
+    'counter_fare',
+    // optional fare price
     ];
 
     // Relationship to Rider (User)

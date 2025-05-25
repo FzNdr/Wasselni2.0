@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\RideRequest;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class RideRequestController extends Controller
 {
@@ -18,27 +19,37 @@ class RideRequestController extends Controller
         return response()->json($rides);
     }
 
-    // Create a new ride request
-    public function store(Request $request)
-    {
-        $request->validate([
-            'pickup_latitude' => 'required|numeric',
-            'pickup_longitude' => 'required|numeric',
-            'dropoff_latitude' => 'required|numeric',
-            'dropoff_longitude' => 'required|numeric',
-        ]);
 
-        $rideRequest = RideRequest::create([
-            'rider_id' => Auth::id(),
-            'pickup_latitude' => $request->pickup_latitude,
-            'pickup_longitude' => $request->pickup_longitude,
-            'dropoff_latitude' => $request->dropoff_latitude,
-            'dropoff_longitude' => $request->dropoff_longitude,
-            'status' => 'pending',
-        ]);
+public function store(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'rider_id' => 'required|exists:users,id',
+        'driver_id' => 'required|exists:users,id',
+        'pickup_latitude' => 'required|numeric',
+        'pickup_longitude' => 'required|numeric',
+        'dropoff_latitude' => 'required|numeric',
+        'dropoff_longitude' => 'required|numeric',
+        'fare' => 'required|numeric',
+    ]);
 
-        return response()->json($rideRequest, 201);
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
     }
+
+    $ride = RideRequest::create([
+        'rider_id' => $request->rider_id,
+        'driver_id' => $request->driver_id,
+        'pickup_latitude' => $request->pickup_latitude,
+        'pickup_longitude' => $request->pickup_longitude,
+        'dropoff_latitude' => $request->dropoff_latitude,
+        'dropoff_longitude' => $request->dropoff_longitude,
+        'status' => 'pending',
+        'fare' => $request->fare,
+    ]);
+
+    return response()->json(['success' => true, 'ride' => $ride]);
+}
+
 
     // Show a specific ride request details
     public function show($id)
@@ -49,63 +60,113 @@ class RideRequestController extends Controller
 
         return response()->json($rideRequest);
     }
+public function incoming(Request $request)
+{
+    $driver_id = $request->query('driver_id');
+    $requests = RideRequest::where('driver_id', $driver_id)
+                            ->where('status', 'pending')
+                            ->get();
 
-    // Cancel a ride request (only if pending)
-    public function cancel($id)
-    {
-        $rideRequest = RideRequest::where('id', $id)
-            ->where('rider_id', Auth::id())
-            ->where('status', 'pending')
-            ->firstOrFail();
-
-        $rideRequest->status = 'canceled';
-        $rideRequest->save();
-
-        return response()->json(['message' => 'Ride request canceled']);
-    }
-
-    // Driver: Get all pending ride requests without assigned driver
-    public function driverPendingRequests()
-    {
-        $rides = RideRequest::where('status', 'pending')
-            ->whereNull('driver_id')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        return response()->json($rides);
-    }
-
+    return response()->json([
+        'success' => true,
+        'requests' => $requests,
+    ]);
+}
+   
     // Driver: Accept or decline a ride request
-    public function respondToRequest(Request $request, $id)
-    {
-        $request->validate([
-            'action' => 'required|in:accepted,declined',
-        ]);
+public function accept(Request $request, $id)
+{
+    $request->validate([
+        'driver_id' => 'required|exists:users,id',
+    ]);
 
-        $driverId = Auth::id();
+    $ride = RideRequest::where('id', $id)
+        ->where('status', 'pending')
+        ->first();
 
-        // Only get pending ride requests that are unassigned
-        $rideRequest = RideRequest::where('id', $id)
-            ->where('status', 'pending')
-            ->whereNull('driver_id')
-            ->first();
-
-        if (!$rideRequest) {
-            return response()->json(['error' => 'Ride request not found or already assigned'], 404);
-        }
-
-        if ($request->action === 'accepted') {
-            $rideRequest->driver_id = $driverId;
-            $rideRequest->status = 'accepted';
-            $rideRequest->save();
-
-            return response()->json(['message' => 'Ride request accepted', 'ride' => $rideRequest]);
-        } else {
-            // declined - do not assign driver_id, just update status
-            $rideRequest->status = 'declined';
-            $rideRequest->save();
-
-            return response()->json(['message' => 'Ride request declined']);
-        }
+    if (!$ride) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Ride not found or already accepted',
+        ], 404);
     }
+
+    $ride->driver_id = $request->driver_id;
+    $ride->status = 'accepted';
+    $ride->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Ride accepted successfully',
+        'ride' => $ride
+    ]);
+}
+
+
+//driver deny request
+
+public function deny($id)
+{
+    $rideRequest = RideRequest::find($id);
+
+    if (!$rideRequest) {
+        return response()->json(['error' => 'Ride request not found'], 404);
+    }
+
+    $rideRequest->status = 'denied';
+
+    if ($rideRequest->save()) {
+        return response()->json(['message' => 'Ride request denied successfully']);
+    } else {
+        return response()->json(['error' => 'Failed to update status'], 500);
+    }
+}
+
+
+//driver offers counter fare
+
+public function counter(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'ride_id' => 'required|exists:ride_requests,id',
+        'counter_fare' => 'required|numeric|min:1',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    $ride = RideRequest::find($request->ride_id);
+
+    if ($ride && $ride->status === 'pending') {
+        $ride->counter_fare = $request->counter_fare;
+        $ride->status = 'countered';
+        $ride->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Counter offer sent',
+            'ride' => $ride
+        ]);
+    }
+
+    return response()->json(['success' => false, 'message' => 'Ride not found or already updated']);
+}
+//user agrees on counter offer
+
+public function confirmCounter(Request $request)
+{
+    $ride = RideRequest::find($request->ride_id);
+
+    if ($ride && $ride->status === 'countered') {
+        $ride->status = 'confirmed';
+        $ride->fare = $ride->counter_fare;
+        $ride->save();
+
+        return response()->json(['success' => true, 'message' => 'Counter offer accepted']);
+    }
+
+    return response()->json(['success' => false, 'message' => 'No counter offer found']);
+}
+
 }

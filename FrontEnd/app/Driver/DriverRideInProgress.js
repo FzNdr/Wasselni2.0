@@ -12,10 +12,27 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import { Rating } from 'react-native-ratings';
-import CheckBox from '@react-native-community/checkbox'; // Recommended for cross-platform checkbox
+import CheckBox from '@react-native-community/checkbox';
+import { useRouter } from 'expo-router';
 
-const DriverRideInProgress = ({ route, navigation }) => {
-  const { riderLocation, driverLocation, rideId, paymentMethod } = route.params;
+const DriverRideInProgress = () => {
+  const router = useRouter();
+
+  // Extract parameters from URL query strings (they are strings, so parse floats)
+  const riderLocation = params.riderLocation
+    ? JSON.parse(params.riderLocation)
+    : null;
+  const driverLocation = params.driverLocation
+    ? JSON.parse(params.driverLocation)
+    : null;
+  const rideId = params.rideId || null;
+  const paymentMethod = params.paymentMethod || null;
+
+  // TODO: You also need driverUserId and riderUserId here for feedback — 
+  // get them from params or app context accordingly.
+  // For now, I leave placeholders:
+  const driverUserId = params.driverUserId || 'driverUserId_placeholder';
+  const riderUserId = params.riderUserId || 'riderUserId_placeholder';
 
   const [region, setRegion] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -40,42 +57,41 @@ const DriverRideInProgress = ({ route, navigation }) => {
   }, [riderLocation, driverLocation]);
 
   const submitFeedback = async () => {
-  if (rating === 0) {
-    Alert.alert('Rating Required', 'Please provide a rating before submitting.');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const response = await fetch('http://10.0.2.2/api/feedback', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from_user_id: driverUserId,  // Set this in each screen
-        to_user_id: riderUserId,     // Set this in each screen
-        ride_id: rideId,
-        rating,
-        comment: feedback,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      Alert.alert('Thank You', 'Your feedback has been submitted.');
-      setModalVisible(false);
-      navigation.goBack();
-    } else {
-      Alert.alert('Error', data.message || 'Failed to submit feedback.');
+    if (rating === 0) {
+      Alert.alert('Rating Required', 'Please provide a rating before submitting.');
+      return;
     }
-  } catch (error) {
-    Alert.alert('Error', 'An error occurred while submitting feedback.');
-  } finally {
-    setLoading(false);
-  }
-};
 
+    setLoading(true);
+
+    try {
+      const response = await fetch('http://10.0.2.2/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from_user_id: driverUserId,
+          to_user_id: riderUserId,
+          ride_id: rideId,
+          rating,
+          comment: feedback,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Thank You', 'Your feedback has been submitted.');
+        setModalVisible(false);
+        router.back();  // navigate back using expo-router
+      } else {
+        Alert.alert('Error', data.message || 'Failed to submit feedback.');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'An error occurred while submitting feedback.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -137,7 +153,7 @@ const DriverRideInProgress = ({ route, navigation }) => {
                 onValueChange={setRideCompleted}
                 disabled={loading}
                 tintColors={{ true: '#dc3545', false: '#ccc' }}
-                boxType={Platform.OS === 'ios' ? 'square' : undefined} // for iOS styling
+                boxType={Platform.OS === 'ios' ? 'square' : undefined}
               />
               <Text style={styles.checkboxLabel}>Ride completed successfully</Text>
             </View>
@@ -173,7 +189,6 @@ const DriverRideInProgress = ({ route, navigation }) => {
     </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
