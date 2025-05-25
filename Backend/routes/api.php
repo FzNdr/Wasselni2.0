@@ -58,6 +58,7 @@ Route::post('ride-requests/{id}/deny', [RideRequestController::class, 'deny']);
 Route::post('/ride-requests/{id}/counter', [RideRequestController::class, 'counter']);
 Route::post('/ride-requests/confirm', [RideRequestController::class, 'confirmCounter']);
 Route::get('/ride-requests/incoming', [RideRequestController::class, 'incoming']);
+Route::get('/ride/fare', [RideRequestController::class, 'getFare']);
 
 
     // Driver Applications

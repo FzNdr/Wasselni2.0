@@ -72,7 +72,35 @@ public function incoming(Request $request)
         'requests' => $requests,
     ]);
 }
-   
+   public function getFare(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'rider_id' => 'required|exists:users,id',
+        'driver_id' => 'required|exists:users,id',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['error' => $validator->errors()], 422);
+    }
+
+    // Dummy logic: flat rate or dynamic logic based on location/distance
+    // Later, replace with Haversine formula or real calculation
+    $baseFare = 5.00;
+    $perKmRate = 1.00;
+
+    // You could optionally use coordinates if passed to calculate distance
+    $distanceKm = 2; // Simulated 2 km
+    $fare = $baseFare + ($distanceKm * $perKmRate);
+
+    return response()->json([
+        'success' => true,
+        'fare' => [
+            'amount' => number_format($fare, 2),
+            'currency' => '$'
+        ]
+    ]);
+}
+
     // Driver: Accept or decline a ride request
 public function accept(Request $request, $id)
 {
